@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  moviepicker-backend:
+    container_name: moviepicker-backend
+    build: ./backend/
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    volumes:
+      - ./backend:/app:z
+    ports:
+      - "8000:8000"
+    depends_on:
+      - moviepicker-postgres
+    user: 1100:1100  
+  moviepicker-postgres:
+    image: postgres:latest
+    container_name: moviepicker-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: moviepickerpass
+      POSTGRES_DB: moviepicker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
