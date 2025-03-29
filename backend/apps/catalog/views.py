@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import connection
 
+# TODO: Add authentication
 
 # This is dirty fix to get the next available ID if we want to import genre name without ID
 # TODO: Talk with others if we want this or not. If not, then we always need to specify
