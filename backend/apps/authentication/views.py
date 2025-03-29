@@ -35,13 +35,18 @@ class CustomAuthToken(ObtainAuthToken):
 
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        token = Token.objects.get(key=response.data['token'])
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.validated_data['user']
+        token, _ = Token.objects.get_or_create(user=user)
+
         return Response({
             'token': token.key,
-            'user_id': token.user_id,
-            'username': token.user.username,
-        })
+            'user_id': user.id,
+            'username': user.username
+        }, status=status.HTTP_200_OK)
 
 ###### LOGOUT ######
 class LogoutView(APIView):
