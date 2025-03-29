@@ -25,6 +25,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     def delete_by_name(self, request):
         """
         Single Delete a genre by name.
+        Requires auth token in header
 
         Expected JSON body:
         ```
@@ -41,10 +42,10 @@ class GenreViewSet(viewsets.ModelViewSet):
             
         ### Examples:
         #### DELETE using the id 
-        `curl -X DELETE http://localhost:8000/api/genres/<ID>/`
+        `curl -X DELETE -H "Authorization: Token <token>" http://localhost:8000/api/genres/<ID>/`
 
         #### DELETE using the name
-        `curl -X DELETE http://localhost:8000/api/genres/delete_by_name/ -H "Content-Type: application/json" -d '{"name": "test-id-5"}'`
+        `curl -X DELETE -H "Authorization: Token <token>" http://localhost:8000/api/genres/delete_by_name/ -H "Content-Type: application/json" -d '{"name": "test-id-5"}'`
 
 
         """
@@ -68,6 +69,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     def import_genres(self, request):
         """
         Bulk import genres using custom IDs.
+        Expects auth token in header.
 
         Expected JSON input:
         ```
@@ -90,6 +92,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         ```
         curl -X POST http://localhost:8000/api/genres/import/ \
         -H "Content-Type: application/json" \
+        -H "Authorization: Token <token>" \
         -d '[
             {"id":4, "name": "test-id-4"},
             {"name": "test-without-id"}

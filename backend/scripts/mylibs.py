@@ -4,7 +4,35 @@ import os
 
 load_dotenv()  # Loads .env file into environment
 
+
+
+
+def get_moviepicker_auth_token():
+    """
+    Fetches the MoviePicker authentication token from the API.
+    """
+    response = requests.post(
+        "http://localhost:8000/api/auth/login/",
+        json={
+            "username": "admin",
+            "password": "admin"
+        },
+        headers={"Content-Type": "application/json"}
+    )
+    if response.status_code == 200:
+        token = response.json().get("token")
+        return token
+    else:
+        print("Failed to fetch auth token.")
+        return None
+
+#TODO: maybe better layout? xD
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+moviepicker_auth_token = os.getenv("MOVIEPICKER_AUTH_TOKEN")
+if not moviepicker_auth_token:
+    moviepicker_auth_token = get_moviepicker_auth_token()
+print(f"MoviePicker auth token: {moviepicker_auth_token}")
+
 
 
 def import_missing_genres():
@@ -14,7 +42,7 @@ def import_missing_genres():
     """
     our_genre_list = requests.get(
         "http://localhost:8000/api/genres/",
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json", "Authorization": f"Token {moviepicker_auth_token}"}
     ).json()
 
     # Make a request to the TMDB API to get the list of genres
@@ -51,3 +79,6 @@ def delete_genre_by_id(genre_id):
     )
     print(response.status_code)
     return response
+
+
+
