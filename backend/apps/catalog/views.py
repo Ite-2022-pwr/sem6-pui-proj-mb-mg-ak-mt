@@ -16,7 +16,7 @@ def reset_genre_id_sequence():
         cursor.execute("SELECT setval(pg_get_serial_sequence('catalog_genre', 'id'), (SELECT MAX(id) FROM catalog_genre));")
 
 
-
+# TODO: Review urls/paths here
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer

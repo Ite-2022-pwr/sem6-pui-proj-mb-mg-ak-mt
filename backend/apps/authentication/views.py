@@ -2,11 +2,10 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from .serializers import *
 
-
-# TODO: Add logout with token deletion
-# TODO: Add login with token creation
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -67,3 +66,46 @@ class LogoutView(APIView):
     def post(self, request):
         request.user.auth_token.delete() 
         return Response({"detail": "Logged out successfully."})
+
+class RegisterView(APIView):
+    """
+    Register user, without logging (creating a token)
+
+    ## POST:
+
+    Required body:
+    ```
+    {
+        "username": "newuser",
+        "email": "user@example.com",
+        "password": "newpass123"
+    }
+    ```
+
+    ### Returns:
+    200 - with id, username, email \n
+    400 - If user already exists
+    400 - If the password does not meet the requirements
+    400 - If the email address is invalid
+
+    ### Example:
+    curl -w "%{http_code}\n" -X POST http://localhost:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "newuser2", "email": "user@example.com", "password": "asdfasdfasdf123"}'
+
+
+    """
+
+
+
+    permission_classes = [AllowAny]  # It allows everybody to access this endpoint
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

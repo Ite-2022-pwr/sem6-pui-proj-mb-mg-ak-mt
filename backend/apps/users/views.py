@@ -5,14 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 
-# TODO: Add authentication
-
-# TODO: Add create_user, delete_user, update_user
+# TODO: Add delete_user, update_user
 
 from rest_framework import viewsets
 from django.contrib.auth.models import User
 from .serializers import UserSerializer
 
+# TODO: review paths/urls here
 class UserViewSet(viewsets.ModelViewSet): 
     """
     Only admin user is able to view all users.

@@ -10,7 +10,25 @@ functions:
 - Bulk import from json
 - Delete by ID 
 - Delete by Name
-- Get JSON with all genres
+- Get JSON with all genres  
+
+
+url: /api/genres -- [GET] get all genres   
+url: /api/genres/<ID> -- [DELETE] (without body) Delete genre with specific ID  
+url: /api/genres/delete_by_name/ -- [DELETE] Delete genre with specific ID  
+url: /api/genres/import_genres -- [POST] Insert genres from json  
+
+
+### Authentication
+url: /api/auth  
+url: /api/auth/login -- [POST] pass creds to get auth token  
+url: /api/auth/logout -- [POST] pass token to logout  
+url: /api/auth/register -- [POST] pass username,email,password to create user  
+
+
+### Users
+url: /api/users/ -- [GET] get all users  
+url: /api/users/me -- [GET] get info about current user  
 
 
 ## Helper scripts
@@ -18,3 +36,5 @@ In oder to use `helper.py`, you need to have `requests, typer` installed and you
 `TMDB_API_KEY=<TMDB_API_KEY>`
 #### Import genres from the TMDB:
 `py helper.py genres import_missing`
+
+#TODO: Create scripts to create users
