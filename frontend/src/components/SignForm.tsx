@@ -15,15 +15,13 @@ function SignForm({ route, heading }: Props) {
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
-    if (
-      !username.trim() ||
-      !password.trim() ||
-      !email.trim() ||
-      !confirmPassword.trim()
-    )
-      return;
+    if (!username.trim() || !password.trim()) return;
 
-    if (password !== confirmPassword) return;
+    if (route === "/register") {
+      if (!email.trim() || !confirmPassword.trim()) return;
+
+      if (password !== confirmPassword) return;
+    }
 
     alert(route + "\nUsername: " + username + "\nPassword: " + password);
   };
