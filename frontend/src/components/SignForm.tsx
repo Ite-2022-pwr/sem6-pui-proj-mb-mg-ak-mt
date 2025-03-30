@@ -70,10 +70,10 @@ function SignForm({ route, heading }: Props) {
             />
           )}
 
-          {password == confirmPassword ? (
+          {route === "/login" || password == confirmPassword ? (
             <button
               type="submit"
-              className="w-32 h-10 m-auto text-center space-x-10 justify-center rounded-md bg-slate-900 text-white hover:bg-slate-700"
+              className="flex items-center w-32 h-10 m-auto space-x-10 justify-center rounded-md bg-slate-900 text-white hover:bg-slate-700"
             >
               {heading}
             </button>
