@@ -28,7 +28,7 @@ def genresapp_delete_by_name(name: str = typer.Argument(..., help="The name of t
 
 @genres_app.command("import_missing", help="Import missing genres from TMDB, requires admin")
 def genresapp_import_missing():
-    print(genres_import_missing().json())
+    print(genres_import_missing())
 
 
 ##### USERS // AUTHENTICATION #####
@@ -66,8 +66,17 @@ def usersapp_logout(
 ### MOVIES #####
 @movies_app.command("list", help=" To be implemented")
 def moviesapp_list():
-    pass
-    # list_movies()
+    print(movies_list().json())
+
+
+
+@movies_app.command("import_page", help="Fetches movies from TMDB specified page and imports missing movies")
+def moviesapp_import_page(
+     id: int = typer.Argument(..., help="The page number to fetch movies from TMDB")
+):
+    print(movies_import_new_from_page(id).json())
+
+
 
 ### SERIES #####
 @series_app.command("list", help=" To be implemented")

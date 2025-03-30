@@ -34,8 +34,9 @@ def genres_import_missing():
 
     # Make a request to the TMDB API to get the list of genres
     tmdb_response = requests.get(
-        "https://api.themoviedb.org/3/genre/movie/list",
-        params={"api_key": TMDB_API_KEY, "language": "en-US"}
+        "https://api.themoviedb.org/3/genre/movie/list?language=en",
+        headers={"Authorization": f"Bearer {TMDB_BEARER}",
+        "Content-Type": "application/json"}
     )
     genres = tmdb_response.json().get("genres", [])
 
@@ -167,10 +168,87 @@ def users_logout(token):
     return response
 
 
+def movies_list():
+    """
+    Fetches and displays movies from the /api/movies/ endpoint.
+    """
+    url = "http://localhost:8000/api/movies/"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+    }
+    response = requests.get(url, headers=headers)
+    print(f"Status code: {response.status_code}")
+    return response
+
+
+def movies_import_new_from_page(page_id):
+    """
+    Fetches movies from TMDB API for specified page and imports only missing movies to our db.
+    """
+    headers = {
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
+        "Content-Type": "application/json"
+    }
+    moviepicker_url = "http://localhost:8000/api/movies/import/"
+    # api_url = f"https://api.themoviedb.org/3/movie/popular?api_key={TMDB_API_KEY}&language=en-US&page={page_id}"
+
+    # Get existing movies (we do not do pagination yet and json returns all movies)
+    existing_movies = movies_list().json()
+    existing_titles= [movie["title"].lower() for movie in existing_movies if "title" in movie ]
+
+    print(existing_titles)
+
+    # Get movies from TMDB API
+    tmdb_response = requests.get(
+        f"https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page={page_id}&sort_by=popularity.desc",
+        headers={"Authorization": f"Bearer {TMDB_BEARER}",
+        "Content-Type": "application/json"}
+    )
+
+    if tmdb_response.status_code != 200:
+        print(f"TMDB API request failed: {tmdb_response.status_code}")
+        print(tmdb_response.json())
+        return 
+    json_data = tmdb_response.json().get("results", [])
+
+    # 2. Filter out movies that already exist
+    to_import = []
+    for item in json_data:
+        title = item.get("title", "").strip()
+        if title.lower() not in existing_titles:
+            transformed = {
+                "title": title,
+                "description": item.get("overview") or "no description provided",
+                "poster_path": item.get("poster_path") or ("blank_poster.png"),
+                "release_date": item.get("release_date"),
+                "vote_average": item.get("vote_average", 0.0),
+                "vote_count": item.get("vote_count", 0),
+                "adult": item.get("adult", False),
+                "genres": item.get("genre_ids", [])
+            }
+            to_import.append(transformed)
+
+    print(to_import)
+    if not to_import:
+        print(" No new movies to import.")
+        return
+
+    # 3. POST only the new ones
+    import_response = requests.post(moviepicker_url, json=to_import, headers=headers)
+    if import_response.status_code == 201:
+        print(f"Imported {len(to_import)} new movies.")
+        return import_response
+    else:
+        print(f"Import failed: {import_response.status_code}")
+        return import_response
+
+
 
 ### INIT env variables and get aut token ####
 load_dotenv()  # Loads .env file into environment
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+TMDB_BEARER = os.getenv("TMDB_BEARER")
 MOVIEPICKER_USERNAME = os.getenv("MOVIEPICKER_USERNAME")
 MOVIEPICKER_PASSWORD = os.getenv("MOVIEPICKER_PASSWORD")
 MOVIEPICKER_AUTH = os.getenv("MOVIEPICKER_AUTH")

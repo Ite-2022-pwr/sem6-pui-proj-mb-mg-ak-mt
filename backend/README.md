@@ -29,6 +29,12 @@ url: /api/auth/register -- [POST] pass username,email,password to create user
 url: /api/users/ -- [GET] get all users  
 url: /api/users/me -- [GET] get info about current user  
 
+### Movies
+url /api/movies -- [GET] get all movies  
+url /api/movies/<id>/ -- [DELETE] delete movie with specific ID
+url /api/movies/<id>/ -- [PATCH] update movie with specific ID (with json ofc)
+url /api/movies/import -- [POST] import movies from json  
+
 
 ## Helper scripts
 In oder to use `helper.py`, you need to have `requests, typer` installed and you need to create `.env` file with:
@@ -43,5 +49,8 @@ MOVIEPICKER_AUTH=test_token # If DEV_MODE=false, you need to set token here from
 
 #### Import genres from the TMDB:
 `py helper.py genres import_missing`
+
+#### Import movies from TMDB page id (they are sorted by popularity)
+`py backend/scripts/helper.py movies import_page <id>`
 
 #TODO: Create scripts to create users
