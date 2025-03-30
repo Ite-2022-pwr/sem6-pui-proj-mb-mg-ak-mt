@@ -4,6 +4,7 @@ from .serializers import *
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.db import connection
 
 # TODO: Add authentication
@@ -147,7 +148,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         return Response({'imported': imported}, status=status.HTTP_201_CREATED)
 
 
-
+#### MOVIES #####
 class MovieViewSet(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
@@ -241,3 +242,173 @@ class MovieViewSet(viewsets.ModelViewSet):
         reset_movie_id_sequence()
 
         return Response({'imported': imported}, status=201)
+
+#### LISTS #####
+class MyListViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing user-created movie lists.  
+    Supports CRUD, movie management, and list sharing.  
+    
+    ## GET:
+    /api/lists/ - Requires admin, returns all lists
+    /api/lists/me - Requires auth token, returns lists owned by the user
+
+    ## POST:
+    ### Create new list: 
+    url: /api/lists/ 
+    body:
+    {
+        "name": <list_name>,
+        "movies": [<movie_id1>, <movie_id2>] -- this is optional
+        "shared_with": [<user1_id>, <user2_id>] -- this is optional
+    }
+
+    """
+    serializer_class = MyListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Admins can see all lists; others see nothing here by default.
+        """
+        user = self.request.user
+        if user.is_staff:
+            return MyList.objects.all()
+        return MyList.objects.none()
+    @action(detail=False, methods=['get'], url_path='me')
+    def my_lists(self, request):
+        """
+        Returns lists owned by or shared with the current user.
+        GET /api/lists/me/
+        """
+        user = request.user
+        queryset = MyList.objects.filter(user=user) | MyList.objects.filter(shared_with=user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def perform_create(self, serializer):
+        """
+        Automatically assign the current user as the owner when creating a list.
+        """
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post', 'delete'], url_path='slug/(?P<slug>[^/]+)/share')
+    def share_by_slug(self, request, slug=None):
+        """
+        Share or unshare a list by slug with another user.
+
+        ### POST
+        Share a list with a user:
+        URL:   /api/lists/slug/<slug>/share/
+        Body:  { "username": "friend_username" }
+
+        ### DELETE
+        Unshare a list from a user:
+        URL:   /api/lists/slug/<slug>/share/
+        Body:  { "username": "friend_username" }
+
+        Returns:
+            - 200 OK on success
+            - 400 if input is missing
+            - 403 if user is not the list owner
+            - 404 if user or list not found
+        """
+        try:
+            list_obj = MyList.objects.get(slug=slug)
+        except MyList.DoesNotExist:
+            return Response({'error': 'List not found'}, status=404)
+
+        if request.user != list_obj.user:
+            return Response({'error': 'You do not own this list.'}, status=403)
+
+        username = request.data.get('username')
+        if not username:
+            return Response({'error': 'Missing "username"'}, status=400)
+
+        try:
+            target_user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
+        if request.method == 'POST':
+            list_obj.shared_with.add(target_user)
+            return Response({'message': f"List '{slug}' shared with {username}."})
+
+        elif request.method == 'DELETE':
+            list_obj.shared_with.remove(target_user)
+            return Response({'message': f"List '{slug}' unshared from {username}."})
+
+        return Response({'error': 'Method not allowed.'}, status=405)
+
+        
+
+
+    @action(detail=False, methods=['get', 'post', 'delete'], url_path='slug/(?P<slug>[^/]+)')
+    def handle_list_by_slug(self, request, slug=None):
+        """
+        Unified handler for interacting with a list by its slug.
+
+        Supports:
+        - GET    /api/lists/slug/<slug>/      → Returns list details
+        - POST   /api/lists/slug/<slug>/      → Adds movie(s) to the list
+        - DELETE /api/lists/slug/<slug>/      → Removes movie(s) from the list
+
+        Permissions:
+        - User must be the list owner or one of the shared users.
+        
+        POST & DELETE Payloads:
+        - Accepts either a single movie ID:
+            { "movie_id": 5 }
+        - Or a list of movie IDs:
+            { "movie_ids": [5, 7, 9] }
+
+        Returns:
+            - 200 OK with a success message or list details
+            - 403 Forbidden if user doesn't have access
+            - 404 Not Found if list or movie does not exist
+            - 400 Bad Request if input is missing or invalid
+        """
+        try:
+            list_obj = MyList.objects.get(slug=slug)
+        except MyList.DoesNotExist:
+            return Response({'error': 'List not found'}, status=404)
+
+        if request.user != list_obj.user and request.user not in list_obj.shared_with.all():
+            return Response({'error': 'Permission denied.'}, status=403)
+
+        if request.method == 'GET':
+            serializer = self.get_serializer(list_obj)
+            return Response(serializer.data)
+
+        # Get movie IDs from request (accept single int or list)
+        movie_ids = request.data.get("movie_id") or request.data.get("movie_ids")
+
+        if not movie_ids:
+            return Response({'error': 'Missing movie_id(s)'}, status=400)
+
+        if isinstance(movie_ids, int):
+            movie_ids = [movie_ids]  # Wrap single ID in a list
+
+        if not isinstance(movie_ids, list):
+            return Response({'error': 'movie_ids must be a list of integers.'}, status=400)
+
+        # Fetch valid movie objects
+        movies = list(Movie.objects.filter(id__in=movie_ids))
+        found_ids = {m.id for m in movies}
+        missing_ids = set(movie_ids) - found_ids
+
+        if request.method == 'POST':
+            list_obj.movies.add(*movies)
+            msg = f"Added {len(movies)} movie(s) to list '{slug}'."
+            if missing_ids:
+                msg += f" Skipped missing IDs: {list(missing_ids)}"
+            return Response({'message': msg})
+
+        elif request.method == 'DELETE':
+            list_obj.movies.remove(*movies)
+            msg = f"Removed {len(movies)} movie(s) from list '{slug}'."
+            if missing_ids:
+                msg += f" Skipped missing IDs: {list(missing_ids)}"
+            return Response({'message': msg})
+
+        return Response({'error': 'Method not allowed.'}, status=405)

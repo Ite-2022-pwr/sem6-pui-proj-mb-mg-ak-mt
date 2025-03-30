@@ -9,6 +9,8 @@ router = DefaultRouter()
 # this will be under /api/genres/
 router.register(r'genres', GenreViewSet)
 router.register(r'movies', MovieViewSet, basename='movie')
+router.register(r'lists', MyListViewSet, basename='lists')
+
 
 ## Every url here will ne prepended with /api/
 urlpatterns = [

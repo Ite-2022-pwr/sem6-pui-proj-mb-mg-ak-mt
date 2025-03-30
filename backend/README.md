@@ -22,7 +22,8 @@ url: /api/genres/import_genres -- [POST] Insert genres from json
 ### Authentication
 url: /api/auth/login -- [POST] pass creds to get auth token  
 url: /api/auth/logout -- [POST] pass token to logout  
-url: /api/auth/register -- [POST] pass username,email,password to create user  
+url: /api/auth/register -- [POST] pass username,email,password to create user. 
+It also automatically creates 3 lists for user  [Recommended,Watched,Favorites]
 
 
 ### Users
@@ -30,11 +31,23 @@ url: /api/users/ -- [GET] get all users
 url: /api/users/me -- [GET] get info about current user  
 
 ### Movies
-url /api/movies -- [GET] get all movies  
+url /api/movies/ -- [GET] get all movies  
+url /api/movies/ -- [POST] Create a single movie entry  
 url /api/movies/<id>/ -- [DELETE] delete movie with specific ID
 url /api/movies/<id>/ -- [PATCH] update movie with specific ID (with json ofc)
-url /api/movies/import -- [POST] import movies from json  
+url /api/movies/import -- [POST] bulk import movies from json  
 
+### Lists
+Slug is created by converting the list name to URL friendly string with user_id in the beggining.
+For example user with ID 1 creates "Awesome list", slug will be: "1-awesome_list"
+url: /api/lists -- [GET] Requires admin, returns all lists for all users
+url: /api/lists/me -- [GET] get all lists for current user
+url: /api/lists -- [POST] Create new list from json (name is required, movies and shared_with are optional)
+url: /api/lists/slug/<slug> -- [GET] Get a list with specific slug
+url: /api/lists/slug/<slug> -- [POST] Add a single or list of movies to  list
+url: /api/lists/slug/<slug> -- [DELETE] Delete a single or list of movies to  list
+url: /api/lists/slug/<slug>/share -- [POST] -- Share a list with other user (requires username in body ) 
+url: /api/lists/slug/<slug>/share -- [DELETE] -- Unshare a list with other user (requires username in body ) 
 
 ## Helper scripts
 In oder to use `helper.py`, you need to have `requests, typer` installed and you need to create `.env` file with:
