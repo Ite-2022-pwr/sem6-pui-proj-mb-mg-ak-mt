@@ -6,27 +6,47 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import connection
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 # TODO: Add authentication
 
 # This is dirty fix to get the next available ID if we want to import genre name without ID
 # TODO: Talk with others if we want this or not. If not, then we always need to specify
 #       the id ourselves.
+
+
 def reset_genre_id_sequence():
     with connection.cursor() as cursor:
-        cursor.execute("SELECT setval(pg_get_serial_sequence('catalog_genre', 'id'), (SELECT MAX(id) FROM catalog_genre));")
+        cursor.execute(
+            "SELECT setval(pg_get_serial_sequence('catalog_genre', 'id'), (SELECT MAX(id) FROM catalog_genre));")
+
 
 def reset_movie_id_sequence():
     from django.db import connection
     with connection.cursor() as cursor:
-        cursor.execute("SELECT setval(pg_get_serial_sequence('catalog_movie', 'id'), (SELECT MAX(id) FROM catalog_movie));")
+        cursor.execute(
+            "SELECT setval(pg_get_serial_sequence('catalog_movie', 'id'), (SELECT MAX(id) FROM catalog_movie));")
 
 
 # TODO: Review urls/paths here
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-  
+
+    delete_by_name_request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "name": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Name of the genre to delete"
+            )
+        },
+        required=["name"],
+        example={"name": "Genre_name"}
+    )
+
+    @swagger_auto_schema(request_body=delete_by_name_request_body)
     @action(detail=False, methods=['delete'], url_path='delete_by_name')
     def delete_by_name(self, request):
         """
@@ -45,7 +65,7 @@ class GenreViewSet(viewsets.ModelViewSet):
             - 200 Resource deleted.
             - 404 Resource not found
         ```
-            
+
         ### Examples:
         #### DELETE using the id 
         `curl -X DELETE -H "Authorization: Token <token>" http://localhost:8000/api/genres/<ID>/`
@@ -69,8 +89,33 @@ class GenreViewSet(viewsets.ModelViewSet):
             return Response({"error": f"Genre '{name}' not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 ########### POST -- BULK IMPORT ##################
+    # Define the schema for a single genre item.
+    genre_item_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'id': openapi.Schema(
+                type=openapi.TYPE_INTEGER,
+                description="Optional custom genre ID"
+            ),
+            'name': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Name of the genre"
+            ),
+        },
+        required=['name']  # 'name' is required; 'id' is optional.
+    )
+    # Define the schema for the entire request body (a list of genre items) and add an example.
+    import_genres_schema = openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        items=genre_item_schema,
+        example=[
+            {"id": 4, "name": "test-id-4"},
+            {"name": "test-without-id"}
+        ]
+    )
+
+    @swagger_auto_schema(request_body=import_genres_schema)
     @action(detail=False, methods=['post'], url_path='import')
     def import_genres(self, request):
         """
@@ -116,7 +161,7 @@ class GenreViewSet(viewsets.ModelViewSet):
             name = item.get("name")
 
             # Validate required fields
-            if  name is None:
+            if name is None:
                 return Response(
                     {"error": f"Each item must include 'name'. Problematic entry: {item}"},
                     status=status.HTTP_400_BAD_REQUEST
@@ -154,18 +199,48 @@ class MovieViewSet(viewsets.ModelViewSet):
     serializer_class = MovieSerializer
 
     ########## DELETE by title ##########
+    # Define the request body schema for deleting by title.
+    delete_by_title_request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "title": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Title of the movie to delete"
+            )
+        },
+        required=["title"],
+        example={"title": "Movie Title"}
+    )
+
+    @swagger_auto_schema(
+        request_body=delete_by_title_request_body,
+        responses={
+            200: openapi.Response(
+                description="Movie deleted successfully",
+                examples={
+                    "application/json": {"message": "Movie 'Movie Title' deleted."}}
+            ),
+            404: openapi.Response(
+                description="Movie not found",
+                examples={
+                    "application/json": {"error": "Movie 'Movie Title' not found."}}
+            ),
+            400: openapi.Response(
+                description="Missing title in request body",
+                examples={
+                    "application/json": {"error": "Missing 'title' in request body."}}
+            )
+        })
     @action(detail=False, methods=['delete'], url_path='delete_by_title')
     def delete_by_title(self, request):
         """
         Delete a movie by title.
         Requires auth token in header.
-
-        Expected JSON body:
+        Expected JSON body
         {
             "title": "Movie Title"
         }
-
-        Returns:
+        Returns
             - 200 if deleted
             - 404 if not found
         """
@@ -223,7 +298,7 @@ class MovieViewSet(viewsets.ModelViewSet):
 
             if not title or not release_date or not genres:
                 return Response(
-                    {"error": f"Each item must include 'title', 'release_date', and 'genres'. Problematic entry: {item}"},
+                    {"error": f"must include 'title', 'release_date', and 'genres' {item}"},
                     status=400
                 )
 
@@ -244,26 +319,15 @@ class MovieViewSet(viewsets.ModelViewSet):
         return Response({'imported': imported}, status=201)
 
 #### LISTS #####
+
+
 class MyListViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing user-created movie lists.  
-    Supports CRUD, movie management, and list sharing.  
-    
-    ## GET:
-    /api/lists/ - Requires admin, returns all lists
-    /api/lists/me - Requires auth token, returns lists owned by the user
-
-    ## POST:
-    ### Create new list: 
-    url: /api/lists/ 
-    body:
-    {
-        "name": <list_name>,
-        "movies": [<movie_id1>, <movie_id2>] -- this is optional
-        "shared_with": [<user1_id>, <user2_id>] -- this is optional
-    }
-
+    Get /lists/ requires being admin
+    To get lists for current user, go to /lists/me
+    To create list, do a POST request to /lists/ 
     """
+
     serializer_class = MyListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -275,6 +339,7 @@ class MyListViewSet(viewsets.ModelViewSet):
         if user.is_staff:
             return MyList.objects.all()
         return MyList.objects.none()
+
     @action(detail=False, methods=['get'], url_path='me')
     def my_lists(self, request):
         """
@@ -282,7 +347,8 @@ class MyListViewSet(viewsets.ModelViewSet):
         GET /api/lists/me/
         """
         user = request.user
-        queryset = MyList.objects.filter(user=user) | MyList.objects.filter(shared_with=user)
+        queryset = MyList.objects.filter(
+            user=user) | MyList.objects.filter(shared_with=user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -340,29 +406,38 @@ class MyListViewSet(viewsets.ModelViewSet):
 
         return Response({'error': 'Method not allowed.'}, status=405)
 
-        
+    delete_movies_request_body = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "movie_ids": openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(type=openapi.TYPE_INTEGER),
+                description="List of movie IDs to remove"
+            )
+        },
+        required=["movie_ids"],
+        example={"movie_ids": [5, 7, 9]}
+    )
 
-
+    @swagger_auto_schema(
+        method='delete',
+        request_body=delete_movies_request_body)
     @action(detail=False, methods=['get', 'post', 'delete'], url_path='slug/(?P<slug>[^/]+)')
     def handle_list_by_slug(self, request, slug=None):
         """
-        Unified handler for interacting with a list by its slug.
-
-        Supports:
-        - GET    /api/lists/slug/<slug>/      → Returns list details
-        - POST   /api/lists/slug/<slug>/      → Adds movie(s) to the list
-        - DELETE /api/lists/slug/<slug>/      → Removes movie(s) from the list
-
-        Permissions:
+        Handler for interacting with a list by its slug
+        ## Supports
+        - GET    /api/lists/slug/{slug}/      → Returns list details
+        - POST   /api/lists/slug/{slug}/      → Adds movie(s) to the list
+        - DELETE /api/lists/slug/{slug}/      → Removes movie(s) from the list
+        ## Permissions
         - User must be the list owner or one of the shared users.
-        
-        POST & DELETE Payloads:
-        - Accepts either a single movie ID:
-            { "movie_id": 5 }
-        - Or a list of movie IDs:
-            { "movie_ids": [5, 7, 9] }
-
-        Returns:
+        ## POST & DELETE Payloads:
+        Accepts either a single movie ID:
+            `{ "movie_id": 5 }`
+        Or a list of movie IDs:
+            `{ "movie_ids": [5, 7, 9] }`
+        ## Returns
             - 200 OK with a success message or list details
             - 403 Forbidden if user doesn't have access
             - 404 Not Found if list or movie does not exist
@@ -381,7 +456,8 @@ class MyListViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         # Get movie IDs from request (accept single int or list)
-        movie_ids = request.data.get("movie_id") or request.data.get("movie_ids")
+        movie_ids = request.data.get(
+            "movie_id") or request.data.get("movie_ids")
 
         if not movie_ids:
             return Response({'error': 'Missing movie_id(s)'}, status=400)
