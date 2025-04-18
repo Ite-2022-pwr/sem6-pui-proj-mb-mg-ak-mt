@@ -1,4 +1,7 @@
 import { FormEvent, useState } from "react";
+import api from "../api";
+import { ACCESS_TOKEN } from "../constants";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   route: "/login" | "/register";
@@ -12,7 +15,9 @@ function SignForm({ route, heading }: Props) {
   const [email, setEmail] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSubmit = (event: FormEvent) => {
+  const navigate = useNavigate()
+
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (!username.trim() || !password.trim()) return;
@@ -23,7 +28,22 @@ function SignForm({ route, heading }: Props) {
       if (password !== confirmPassword) return;
     }
 
-    alert(route + "\nUsername: " + username + "\nPassword: " + password);
+    // alert(route + "\nUsername: " + username + "\nPassword: " + password);
+
+    try {
+      if (route === "/login") {
+        const response = await api.post("/auth" + route + "/", {username, password})
+        localStorage.setItem(ACCESS_TOKEN, response.data.token)
+        navigate("/")
+      } else {
+        const response = await api.post("/auth" + route + "/", {username, password, email})
+        alert(`Created user ${response.data.username}`)
+        navigate("/login")
+      }
+    } catch (error) {
+      // console.log(error)
+      alert(error)
+    }
   };
 
   return (
