@@ -1,1 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Limelight&display=swap');
+
 @import "tailwindcss";
+
+@theme {
+    --color-mydarkblue: #22162B;
+    --color-mylightgrey: #FAFAFF;
+    --color-mydarkgrey: #333C52;
+    --color-mymint: #2CDA9D;
+    --color-myyellow-1: #F6CA83;
+    --color-myyellow-2: #F8BE5F;
+
+    --font-limelight: "Limelight", sans-serif;
+}

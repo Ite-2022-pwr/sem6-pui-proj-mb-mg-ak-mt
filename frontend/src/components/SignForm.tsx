@@ -15,7 +15,7 @@ function SignForm({ route, heading }: Props) {
   const [email, setEmail] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -32,31 +32,38 @@ function SignForm({ route, heading }: Props) {
 
     try {
       if (route === "/login") {
-        const response = await api.post("/auth" + route + "/", {username, password})
-        localStorage.setItem(ACCESS_TOKEN, response.data.token)
-        navigate("/")
+        const response = await api.post("/auth" + route + "/", {
+          username,
+          password,
+        });
+        localStorage.setItem(ACCESS_TOKEN, response.data.token);
+        navigate("/");
       } else {
-        const response = await api.post("/auth" + route + "/", {username, password, email})
-        alert(`Created user ${response.data.username}`)
-        navigate("/login")
+        const response = await api.post("/auth" + route + "/", {
+          username,
+          password,
+          email,
+        });
+        alert(`Created user ${response.data.username}`);
+        navigate("/login");
       }
     } catch (error) {
       // console.log(error)
-      alert(error)
+      alert(error);
     }
   };
 
   return (
     <>
-      <div className=" max-w-lg mx-auto bg-slate-100 rounded-md p-5 space-y-6">
-        <h1 className="font-bold text-3xl text-center">{heading}</h1>
+      <img src="/logo.png" className="flex mx-auto" />
+      <div className=" max-w-lg mx-auto bg-mylightgrey rounded-md p-5 space-y-6">
         <form className="flex flex-col space-y-5" onSubmit={handleSubmit}>
           <input
             value={username}
             name="username"
             onChange={(event) => setUsername(event.target.value)}
             placeholder="Username"
-            className="rounded-s-md grow border border-gray-400 p-2 bg-white"
+            className="rounded-s-md grow p-2 bg-myyellow-1 my-5"
           />
 
           {route === "/register" && (
@@ -65,7 +72,7 @@ function SignForm({ route, heading }: Props) {
               name="email"
               onChange={(event) => setEmail(event.target.value)}
               placeholder="E-mail address"
-              className="rounded-s-md grow border border-gray-400 p-2 bg-white"
+              className="rounded-s-md grow p-2 bg-myyellow-1 my-5"
             />
           )}
 
@@ -75,7 +82,7 @@ function SignForm({ route, heading }: Props) {
             type="password"
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Password"
-            className="rounded-s-md grow border border-gray-400 p-2 bg-white"
+            className="rounded-s-md grow p-2 bg-myyellow-1 my-5"
           />
 
           {route === "/register" && (
@@ -84,14 +91,14 @@ function SignForm({ route, heading }: Props) {
               type="password"
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="Confirm password"
-              className="rounded-s-md grow border border-gray-400 p-2 bg-white"
+              className="rounded-s-md grow p-2 bg-myyellow-1 my-5"
             />
           )}
 
           {route === "/login" || password == confirmPassword ? (
             <button
               type="submit"
-              className="flex items-center w-32 h-10 m-auto space-x-10 justify-center rounded-md bg-slate-900 text-white hover:bg-slate-700"
+              className="flex items-center p-7 w-32 h-10 m-auto space-x-10 justify-center rounded-lg bg-myyellow-2 text-black text-2xl font-limelight hover:bg-myyellow-1 hover:cursor-pointer my-5"
             >
               {heading}
             </button>
