@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import api from "../api";
 import { ACCESS_TOKEN } from "../constants";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 interface Props {
   route: "/login" | "/register";
@@ -55,7 +56,7 @@ function SignForm({ route, heading }: Props) {
 
   return (
     <>
-      <img src="/logo.png" className="flex mx-auto" />
+      <img src={logo} className="flex mx-auto" />
       <div className=" max-w-lg mx-auto bg-mylightgrey rounded-md p-5 space-y-6">
         <form className="flex flex-col space-y-5" onSubmit={handleSubmit}>
           <input

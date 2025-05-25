@@ -1,15 +1,28 @@
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { FaUser } from "react-icons/fa";
 
 function Navbar() {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-mydarkblue text-myyellow-1 flex flex-row items-center justify-between">
       <img src={logo} className="flex" />
       <ul className="flex flex-row font-limelight text-2xl gap-7 mx-5 items-center">
-        <li className="w-24 leading-tight block text-center break-words hover:underline hover:cursor-pointer">
+        <li
+          className="w-24 leading-tight block text-center break-words hover:underline hover:cursor-pointer"
+          onClick={() => {
+            navigate("/browse");
+          }}
+        >
           Browse movies
         </li>
-        <li className="block leading-tight hover:underline hover:cursor-pointer">
+        <li
+          className="block leading-tight hover:underline hover:cursor-pointer"
+          onClick={() => {
+            navigate("/");
+          }}
+        >
           My lists
         </li>
 
