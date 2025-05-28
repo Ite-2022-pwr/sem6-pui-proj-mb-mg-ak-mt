@@ -34,16 +34,16 @@ function SignForm({ route, heading }: Props) {
     try {
       if (route === "/login") {
         const response = await api.post("/auth" + route + "/", {
-          username,
-          password,
+          username: username,
+          password: password,
         });
         localStorage.setItem(ACCESS_TOKEN, response.data.token);
         navigate("/");
       } else {
         const response = await api.post("/auth" + route + "/", {
-          username,
-          password,
-          email,
+          username: username,
+          password: password,
+          email: email,
         });
         alert(`Created user ${response.data.username}`);
         navigate("/login");

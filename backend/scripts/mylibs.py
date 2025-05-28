@@ -3,10 +3,6 @@ import requests
 import os
 
 
-
-
-
-
 ### Proper helper functions to communicate with api ###
 ##### GENRES #####
 def genres_get_all():
@@ -16,31 +12,36 @@ def genres_get_all():
     url = "http://localhost:8000/api/genres/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
     response = requests.get(url, headers=headers)
     print(f"Status code: {response.status_code}")
     return response
 
-def genres_import_missing():
 
+def genres_import_missing():
     """
     Fetches movie genres from TMDB API and imports only missing to our db.
     """
     our_genre_list = requests.get(
         "http://localhost:8000/api/genres/",
-        headers={"Content-Type": "application/json", "Authorization": f"Token {MOVIEPICKER_AUTH}"}
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Token {MOVIEPICKER_AUTH}",
+        },
     ).json()
 
     # Make a request to the TMDB API to get the list of genres
     tmdb_response = requests.get(
         "https://api.themoviedb.org/3/genre/movie/list?language=en",
-        headers={"Authorization": f"Bearer {TMDB_BEARER}",
-        "Content-Type": "application/json"}
+        headers={
+            "Authorization": f"Bearer {TMDB_BEARER}",
+            "Content-Type": "application/json",
+        },
     )
     genres = tmdb_response.json().get("genres", [])
 
-    ### compare 2 jsons list and find missing from the second one 
+    ### compare 2 jsons list and find missing from the second one
     b_set = {(item["id"], item["name"]) for item in our_genre_list}
     missing = [item for item in genres if (item["id"], item["name"]) not in b_set]
     ###
@@ -49,14 +50,18 @@ def genres_import_missing():
         django_response = requests.post(
             "http://localhost:8000/api/genres/import/",
             json=missing,
-            headers={"Content-Type": "application/json", "Authorization": f"Token {MOVIEPICKER_AUTH}"}
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Token {MOVIEPICKER_AUTH}",
+            },
         )
         print(django_response.text)
         return django_response.json()
     else:
-        print("No missing genres to import.") 
+        print("No missing genres to import.")
         return {"message": "No missing genres to import."}
-    
+
+
 def genres_delete_by_id(genre_id):
     """
     Deletes a genre by its ID.
@@ -64,14 +69,12 @@ def genres_delete_by_id(genre_id):
     url = f"http://localhost:8000/api/genres/{genre_id}/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
-    response = requests.delete(
-        url,
-        headers=headers
-    )
+    response = requests.delete(url, headers=headers)
     print(response.status_code)
     return response
+
 
 def genres_delete_by_name(name):
     """
@@ -80,14 +83,13 @@ def genres_delete_by_name(name):
     url = "http://localhost:8000/api/genres/delete_by_name/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
     data = {"name": name}
 
     response = requests.delete(url, headers=headers, json=data)
     print(f"Status code: {response.status_code}")
     return response
-
 
 
 ##### USERS // AUTHENTICATION #####
@@ -98,11 +100,12 @@ def users_show_all():
     url = "http://localhost:8000/api/users/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
     response = requests.get(url, headers=headers)
     print(f"Status code: {response.status_code}")
     return response
+
 
 def users_show_current():
     """
@@ -111,45 +114,41 @@ def users_show_current():
     url = "http://localhost:8000/api/users/me/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
     response = requests.get(url, headers=headers)
     print(f"Status code: {response.status_code}")
     return response
 
-def users_register(username,password,email):
+
+def users_register(username, password, email):
     """
     Register a new user using the /api/auth/register endpoint.
     """
     url = "http://localhost:8000/api/auth/register/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
-    data = {
-        "username": username,
-        "password": password,
-        "email": email
-    }
+    data = {"username": username, "password": password, "email": email}
     response = requests.post(url, headers=headers, json=data)
     print(f"Status code: {response.status_code}")
     return response
 
-def users_login(username,password):
+
+def users_login(username, password):
     """
     Login user using the /api/auth/login endpoint, returns token.
     """
     response = requests.post(
         "http://localhost:8000/api/auth/login/",
-        json={
-            "username": f"{username}",
-            "password": f"{password}"
-        },
-        headers={"Content-Type": "application/json"}
+        json={"username": f"{username}", "password": f"{password}"},
+        headers={"Content-Type": "application/json"},
     )
 
     print(f"Status code: {response.status_code}")
     return response
+
 
 def users_logout(token):
     """
@@ -157,11 +156,7 @@ def users_logout(token):
     """
     response = requests.post(
         "http://localhost:8000/api/auth/logout/",
-
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Token {token}"
-        },
+        headers={"Content-Type": "application/json", "Authorization": f"Token {token}"},
     )
 
     print(f"Status code: {response.status_code}")
@@ -175,7 +170,7 @@ def movies_list():
     url = "http://localhost:8000/api/movies/"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Token {MOVIEPICKER_AUTH}"
+        "Authorization": f"Token {MOVIEPICKER_AUTH}",
     }
     response = requests.get(url, headers=headers)
     print(f"Status code: {response.status_code}")
@@ -188,28 +183,32 @@ def movies_import_new_from_page(page_id):
     """
     headers = {
         "Authorization": f"Token {MOVIEPICKER_AUTH}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
     moviepicker_url = "http://localhost:8000/api/movies/import/"
     # api_url = f"https://api.themoviedb.org/3/movie/popular?api_key={TMDB_API_KEY}&language=en-US&page={page_id}"
 
     # Get existing movies (we do not do pagination yet and json returns all movies)
     existing_movies = movies_list().json()
-    existing_titles= [movie["title"].lower() for movie in existing_movies if "title" in movie ]
+    existing_titles = [
+        movie["title"].lower() for movie in existing_movies if "title" in movie
+    ]
 
     print(existing_titles)
 
     # Get movies from TMDB API
     tmdb_response = requests.get(
         f"https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page={page_id}&sort_by=popularity.desc",
-        headers={"Authorization": f"Bearer {TMDB_BEARER}",
-        "Content-Type": "application/json"}
+        headers={
+            "Authorization": f"Bearer {TMDB_BEARER}",
+            "Content-Type": "application/json",
+        },
     )
 
     if tmdb_response.status_code != 200:
         print(f"TMDB API request failed: {tmdb_response.status_code}")
         print(tmdb_response.json())
-        return 
+        return
     json_data = tmdb_response.json().get("results", [])
 
     # 2. Filter out movies that already exist
@@ -225,7 +224,7 @@ def movies_import_new_from_page(page_id):
                 "vote_average": item.get("vote_average", 0.0),
                 "vote_count": item.get("vote_count", 0),
                 "adult": item.get("adult", False),
-                "genres": item.get("genre_ids", [])
+                "genres": item.get("genre_ids", []),
             }
             to_import.append(transformed)
 
@@ -242,7 +241,6 @@ def movies_import_new_from_page(page_id):
     else:
         print(f"Import failed: {import_response.status_code}")
         return import_response
-
 
 
 ### INIT env variables and get aut token ####
@@ -262,5 +260,5 @@ if MOVIEPICKER_DEV_MODE == "True":
         MOVIEPICKER_AUTH = None
 
 
-#TODO: maybe better layout? xD
+# TODO: maybe better layout? xD
 print(f"MoviePicker auth token: {MOVIEPICKER_AUTH}")

@@ -36,8 +36,13 @@ function Navbar() {
         </li>
 
         <li>
-          <button className="bg-myyellow-1 rounded-full w-12 h-12 flex items-center justify-center">
-            <FaUser className="text-mydarkblue text-xl hover:cursor-pointer" />
+          <button
+            className="bg-myyellow-1 rounded-full w-12 h-12 flex items-center justify-center hover:cursor-pointer"
+            onClick={() => {
+              navigate("/profile");
+            }}
+          >
+            <FaUser className="text-mydarkblue text-xl " />
           </button>
         </li>
       </ul>
