@@ -6,6 +6,7 @@ import NotFound from "./pages/NotFound";
 import BrowseMovies from "./pages/BrowseMovies";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import List from "./pages/List";
 
 function App() {
   return (
@@ -17,8 +18,8 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
             <Route path="browse" element={<BrowseMovies />} />
-            <Route path="browse" element={<BrowseMovies />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="list" element={<List />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

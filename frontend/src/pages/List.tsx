@@ -1,8 +1,15 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
 import api from "../api";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
+
+interface MovieList {
+  id: number;
+  name: string;
+  slug: string;
+  movies: number[];
+}
 
 interface Movie {
   id: number;
@@ -12,16 +19,31 @@ interface Movie {
   genres: number[];
 }
 
-function BrowseMovies() {
+function List() {
+  const [listName, setListName] = useState<string | null>("");
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const listSlug = new URLSearchParams(window.location.search).get("slug");
+
     const fetchMovies = async () => {
       try {
-        const response = await api.get<Movie[]>("/movies");
-        setMovies(response.data);
+        const responseList = await api.get<MovieList>(
+          `/lists/slug/${listSlug}`
+        );
+
+        setListName(responseList.data.name);
+
+        const listMovies: Movie[] = [];
+
+        for (const id of responseList.data.movies) {
+          const res = await api.get<Movie>(`/movies/${id}`);
+          listMovies.push(res.data);
+        }
+
+        setMovies(listMovies);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
@@ -46,7 +68,7 @@ function BrowseMovies() {
       <div className="bg-mywhite min-h-screen px-8 py-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-mydarkblue text-3xl font-limelight border-b w-fit">
-            Browse movies
+            My lists &gt; {listName}
           </h2>
           <input
             type="text"
@@ -63,9 +85,13 @@ function BrowseMovies() {
             return <MovieCard key={movie.id} movie={movie} />;
           })}
         </div>
+
+        {!movies.length && (
+          <p className="my-20 font-bold text-2xl">No movies on this list</p>
+        )}
       </div>
     </>
   );
 }
 
-export default BrowseMovies;
+export default List;

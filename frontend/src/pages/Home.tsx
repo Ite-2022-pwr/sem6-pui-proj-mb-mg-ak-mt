@@ -4,34 +4,36 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import ListCard from "../components/ListCard";
 import NewListButton from "../components/NewListButton";
+
 interface MovieList {
-  id: string;
+  id: number;
   name: string;
+  slug: string;
 }
 function Home() {
   const [lists, setLists] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(function () {
-    async function fetchLists() {
+  useEffect(() => {
+    const fetchLists = async () => {
       try {
         const response = await api.get<MovieList[]>("/lists/me");
         setLists(response.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
-            `Błąd ${err.response.status}: ${
-              err.response.data?.message || "Nieznany błąd"
+            `ERROR ${err.response.status}: ${
+              err.response.data?.message || "Unknown error"
             }`
           );
         } else {
-          setError("Nie udało się pobrać list.");
+          setError("Cannot load lists");
         }
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchLists();
   }, []);
@@ -51,12 +53,12 @@ function Home() {
           />
         </div>
 
-        {loading && <p className="text-mydarkblue">Ładowanie list...</p>}
+        {loading && <p className="text-mydarkblue">Loading lists...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="flex flex-wrap gap-6 text-mymint font-limelight">
           {lists.map(function (list) {
-            return <ListCard key={list.id} name={list.name} />;
+            return <ListCard key={list.id} name={list.name} slug={list.slug} />;
           })}
         </div>
 
