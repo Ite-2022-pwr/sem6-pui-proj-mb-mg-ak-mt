@@ -33,9 +33,12 @@ function MovieModal(props: Props) {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [lists, setLists] = useState<MovieList[]>([]);
   const [chosenList, setChosenList] = useState<MovieList | null>(null);
+  const [slug, setSlug] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGenres = async () => {
+      setSlug(new URLSearchParams(window.location.search).get("slug"));
+
       try {
         const responseGenres = await api.get<Genre[]>("/genres");
         const filteredGenres = responseGenres.data.filter((genre) =>
@@ -94,6 +97,31 @@ function MovieModal(props: Props) {
       });
   };
 
+  const removeFromList = () => {
+    api
+      .delete(`/lists/slug/${slug}/`, {
+        data: {
+          movie_id: props.movie.id,
+        },
+      })
+      .then(() => {
+        alert(`Movie "${props.movie.title}" removed from list`);
+        props.onClose();
+        window.location.reload();
+      })
+      .catch((err) => {
+        if (axios.isAxiosError(err) && err.response) {
+          setError(
+            `ERROR ${err.response.status}: ${
+              err.response.data?.message || "Unknown error"
+            }`
+          );
+        } else {
+          setError("Cannot remove from list");
+        }
+      });
+  };
+
   const closeModal = (event: React.MouseEvent) => {
     const modalBackground = document.getElementById("movie-modal-bg");
     if (event.target === modalBackground) {
@@ -104,51 +132,70 @@ function MovieModal(props: Props) {
   return (
     <div
       id="movie-modal-bg"
-      className="fixed top-0 left-0 w-full h-full bg-black/75 flex items-center justify-center z-50 overflow-scroll text-mydarkblue"
+      className="fixed top-0 left-0 w-full h-full bg-black/75 flex items-center justify-center z-50 text-mydarkblue"
       onClick={closeModal}
     >
-      <form
-        id="select-list-form"
-        onSubmit={handleSubmit}
-        className="bg-mylightgrey p-10 rounded-xl flex flex-col gap-6 w-[80%] max-w-2xl"
-      >
-        <h1 className="border-b w-full text-4xl">Description</h1>
-        <p>{props.movie.description}</p>
-
-        <h1 className="border-b w-full text-4xl">Genres</h1>
-        <ul className="list-disc mx-10">
-          {genres.map((genre) => {
-            return <li>{genre.name}</li>;
-          })}
-          {loading && <p className="text-mydarkblue">Loading genres...</p>}
-        </ul>
-
-        <h1 className="border-b w-full text-4xl">Add to list</h1>
-        <label>
-          Choose list:
-          <select
-            name="lists"
-            form="select-list-form"
-            onChange={(e) => handleOnChange(e.target.value)}
-            className="mx-5 bg-myyellow-1 rounded-2xl p-3 font-bold cursor-pointer text-center"
-          >
-            {lists.map((list) => {
-              return (
-                <option className="rounded-lg cursor-pointer" value={list.id}>
-                  {list.name}
-                </option>
-              );
-            })}
-          </select>
-        </label>
-        <button
-          type="submit"
-          className="bg-mymint w-50 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+      <div className="bg-mylightgrey rounded-xl flex flex-col gap-6 w-[80%] max-w-2xl h-[80%] overflow-y-auto">
+        <form
+          id="select-list-form"
+          onSubmit={handleSubmit}
+          className="bg-mylightgrey p-10 rounded-xl flex flex-col gap-6 max-w-2xl"
         >
-          Add to list
-        </button>
+          <h1 className="border-b w-full text-4xl">Description</h1>
+          <p>{props.movie.description}</p>
+
+          <h1 className="border-b w-full text-4xl">Genres</h1>
+          <ul className="list-disc mx-10">
+            {genres.map((genre) => {
+              return <li key={genre.id}>{genre.name}</li>;
+            })}
+            {loading && <p className="text-mydarkblue">Loading genres...</p>}
+          </ul>
+
+          <h1 className="border-b w-full text-4xl">Add to list</h1>
+          <label>
+            Choose list:
+            <select
+              name="lists"
+              form="select-list-form"
+              onChange={(e) => handleOnChange(e.target.value)}
+              className="mx-5 bg-myyellow-1 rounded-2xl p-3 font-bold cursor-pointer text-center"
+            >
+              {lists.map((list) => {
+                return (
+                  <option
+                    key={list.id}
+                    className="rounded-lg cursor-pointer"
+                    value={list.id}
+                  >
+                    {list.name}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+          <button
+            type="submit"
+            className="bg-mymint w-50 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+          >
+            Add to list
+          </button>
+        </form>
+
+        {slug && (
+          <div className="bg-mylightgrey p-5 rounded-xl flex flex-col gap-6 max-w-2xl">
+            <h1 className="border-b w-full text-4xl"></h1>
+            <button
+              className="bg-red-500 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+              onClick={removeFromList}
+            >
+              Remove from this list
+            </button>
+          </div>
+        )}
+
         {error && <p className="text-red-500">{error}</p>}
-      </form>
+      </div>
     </div>
   );
 }

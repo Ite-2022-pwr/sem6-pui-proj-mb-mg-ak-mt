@@ -4,7 +4,7 @@ import api from "../api";
 
 interface Props {
   onClose: () => void;
-  onCreated: () => void; // Odświeżenie listy po dodaniu
+  onCreated: () => void;
 }
 
 function NewListModal(props: Props) {

@@ -10,6 +10,7 @@ interface MovieList {
   name: string;
   slug: string;
 }
+
 function Home() {
   const [lists, setLists] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
