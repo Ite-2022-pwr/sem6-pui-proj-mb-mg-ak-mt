@@ -19,14 +19,17 @@ from drf_yasg.utils import swagger_auto_schema
 def reset_genre_id_sequence():
     with connection.cursor() as cursor:
         cursor.execute(
-            "SELECT setval(pg_get_serial_sequence('catalog_genre', 'id'), (SELECT MAX(id) FROM catalog_genre));")
+            "SELECT setval(pg_get_serial_sequence('catalog_genre', 'id'), (SELECT MAX(id) FROM catalog_genre));"
+        )
 
 
 def reset_movie_id_sequence():
     from django.db import connection
+
     with connection.cursor() as cursor:
         cursor.execute(
-            "SELECT setval(pg_get_serial_sequence('catalog_movie', 'id'), (SELECT MAX(id) FROM catalog_movie));")
+            "SELECT setval(pg_get_serial_sequence('catalog_movie', 'id'), (SELECT MAX(id) FROM catalog_movie));"
+        )
 
 
 # TODO: Review urls/paths here
@@ -38,16 +41,15 @@ class GenreViewSet(viewsets.ModelViewSet):
         type=openapi.TYPE_OBJECT,
         properties={
             "name": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Name of the genre to delete"
+                type=openapi.TYPE_STRING, description="Name of the genre to delete"
             )
         },
         required=["name"],
-        example={"name": "Genre_name"}
+        example={"name": "Genre_name"},
     )
 
     @swagger_auto_schema(request_body=delete_by_name_request_body)
-    @action(detail=False, methods=['delete'], url_path='delete_by_name')
+    @action(detail=False, methods=["delete"], url_path="delete_by_name")
     def delete_by_name(self, request):
         """
         Single Delete a genre by name.
@@ -67,7 +69,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         ```
 
         ### Examples:
-        #### DELETE using the id 
+        #### DELETE using the id
         `curl -X DELETE -H "Authorization: Token <token>" http://localhost:8000/api/genres/<ID>/`
 
         #### DELETE using the name
@@ -78,45 +80,47 @@ class GenreViewSet(viewsets.ModelViewSet):
         name = request.data.get("name")
 
         if not name:
-            return Response({"error": "Missing 'name' in request body."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Missing 'name' in request body."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             genre = Genre.objects.get(name=name)
             genre.delete()
 
-            return Response({"message": f"Genre '{name}' deleted."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": f"Genre '{name}' deleted."}, status=status.HTTP_200_OK
+            )
         except Genre.DoesNotExist:
-            return Response({"error": f"Genre '{name}' not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": f"Genre '{name}' not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-
-########### POST -- BULK IMPORT ##################
+    ########### POST -- BULK IMPORT ##################
     # Define the schema for a single genre item.
     genre_item_schema = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'id': openapi.Schema(
-                type=openapi.TYPE_INTEGER,
-                description="Optional custom genre ID"
+            "id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="Optional custom genre ID"
             ),
-            'name': openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Name of the genre"
+            "name": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Name of the genre"
             ),
         },
-        required=['name']  # 'name' is required; 'id' is optional.
+        required=["name"],  # 'name' is required; 'id' is optional.
     )
     # Define the schema for the entire request body (a list of genre items) and add an example.
     import_genres_schema = openapi.Schema(
         type=openapi.TYPE_ARRAY,
         items=genre_item_schema,
-        example=[
-            {"id": 4, "name": "test-id-4"},
-            {"name": "test-without-id"}
-        ]
+        example=[{"id": 4, "name": "test-id-4"}, {"name": "test-without-id"}],
     )
 
     @swagger_auto_schema(request_body=import_genres_schema)
-    @action(detail=False, methods=['post'], url_path='import')
+    @action(detail=False, methods=["post"], url_path="import")
     def import_genres(self, request):
         """
         Bulk import genres using custom IDs.
@@ -153,7 +157,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         data = request.data
 
         if not isinstance(data, list):
-            return Response({'error': 'Expected a list of genre objects.'}, status=400)
+            return Response({"error": "Expected a list of genre objects."}, status=400)
 
         imported = []
         for item in data:
@@ -163,21 +167,23 @@ class GenreViewSet(viewsets.ModelViewSet):
             # Validate required fields
             if name is None:
                 return Response(
-                    {"error": f"Each item must include 'name'. Problematic entry: {item}"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {
+                        "error": f"Each item must include 'name'. Problematic entry: {item}"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Check if ID or name already exists
             if Genre.objects.filter(id=genre_id).exists():
                 return Response(
                     {"error": f"Genre with ID {genre_id} already exists."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if Genre.objects.filter(name=name).exists():
                 return Response(
                     {"error": f"Genre with name '{name}' already exists."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Create the genre with the custom ID if possible if not, auto-generate id
@@ -190,7 +196,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         # Reset DB last index to current maximum available
         reset_genre_id_sequence()
 
-        return Response({'imported': imported}, status=status.HTTP_201_CREATED)
+        return Response({"imported": imported}, status=status.HTTP_201_CREATED)
 
 
 #### MOVIES #####
@@ -204,12 +210,11 @@ class MovieViewSet(viewsets.ModelViewSet):
         type=openapi.TYPE_OBJECT,
         properties={
             "title": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Title of the movie to delete"
+                type=openapi.TYPE_STRING, description="Title of the movie to delete"
             )
         },
         required=["title"],
-        example={"title": "Movie Title"}
+        example={"title": "Movie Title"},
     )
 
     @swagger_auto_schema(
@@ -218,20 +223,24 @@ class MovieViewSet(viewsets.ModelViewSet):
             200: openapi.Response(
                 description="Movie deleted successfully",
                 examples={
-                    "application/json": {"message": "Movie 'Movie Title' deleted."}}
+                    "application/json": {"message": "Movie 'Movie Title' deleted."}
+                },
             ),
             404: openapi.Response(
                 description="Movie not found",
                 examples={
-                    "application/json": {"error": "Movie 'Movie Title' not found."}}
+                    "application/json": {"error": "Movie 'Movie Title' not found."}
+                },
             ),
             400: openapi.Response(
                 description="Missing title in request body",
                 examples={
-                    "application/json": {"error": "Missing 'title' in request body."}}
-            )
-        })
-    @action(detail=False, methods=['delete'], url_path='delete_by_title')
+                    "application/json": {"error": "Missing 'title' in request body."}
+                },
+            ),
+        },
+    )
+    @action(detail=False, methods=["delete"], url_path="delete_by_title")
     def delete_by_title(self, request):
         """
         Delete a movie by title.
@@ -247,17 +256,25 @@ class MovieViewSet(viewsets.ModelViewSet):
         title = request.data.get("title")
 
         if not title:
-            return Response({"error": "Missing 'title' in request body."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Missing 'title' in request body."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             movie = Movie.objects.get(title=title)
             movie.delete()
-            return Response({"message": f"Movie '{title}' deleted."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": f"Movie '{title}' deleted."}, status=status.HTTP_200_OK
+            )
         except Movie.DoesNotExist:
-            return Response({"error": f"Movie '{title}' not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": f"Movie '{title}' not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
     ########## BULK IMPORT ##########
-    @action(detail=False, methods=['post'], url_path='import')
+    @action(detail=False, methods=["post"], url_path="import")
     def import_movies(self, request):
         """
         Bulk import movies with optional custom IDs.
@@ -286,7 +303,7 @@ class MovieViewSet(viewsets.ModelViewSet):
         data = request.data
 
         if not isinstance(data, list):
-            return Response({'error': 'Expected a list of movie objects.'}, status=400)
+            return Response({"error": "Expected a list of movie objects."}, status=400)
 
         imported = []
 
@@ -298,14 +315,20 @@ class MovieViewSet(viewsets.ModelViewSet):
 
             if not title or not release_date or not genres:
                 return Response(
-                    {"error": f"must include 'title', 'release_date', and 'genres' {item}"},
-                    status=400
+                    {
+                        "error": f"must include 'title', 'release_date', and 'genres' {item}"
+                    },
+                    status=400,
                 )
 
             if Movie.objects.filter(id=movie_id).exists():
-                return Response({"error": f"Movie with ID {movie_id} already exists."}, status=400)
+                return Response(
+                    {"error": f"Movie with ID {movie_id} already exists."}, status=400
+                )
             if Movie.objects.filter(title=title).exists():
-                return Response({"error": f"Movie '{title}' already exists."}, status=400)
+                return Response(
+                    {"error": f"Movie '{title}' already exists."}, status=400
+                )
 
             serializer = MovieSerializer(data=item)
             if not serializer.is_valid():
@@ -316,7 +339,8 @@ class MovieViewSet(viewsets.ModelViewSet):
 
         reset_movie_id_sequence()
 
-        return Response({'imported': imported}, status=201)
+        return Response({"imported": imported}, status=201)
+
 
 #### LISTS #####
 
@@ -325,7 +349,7 @@ class MyListViewSet(viewsets.ModelViewSet):
     """
     Get /lists/ requires being admin
     To get lists for current user, go to /lists/me
-    To create list, do a POST request to /lists/ 
+    To create list, do a POST request to /lists/
     """
 
     serializer_class = MyListSerializer
@@ -340,15 +364,64 @@ class MyListViewSet(viewsets.ModelViewSet):
             return MyList.objects.all()
         return MyList.objects.none()
 
-    @action(detail=False, methods=['get'], url_path='me')
+    def perform_update(self, serializer):
+        """
+        Only allow list owners and admins to update lists.
+        """
+        list_obj = self.get_object()
+        if self.request.user != list_obj.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied("Only the list owner or admin can modify this list.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """
+        Only allow list owners and admins to delete lists.
+        Returns a proper response for DELETE operations.
+        """
+        if self.request.user != instance.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied("Only the list owner or admin can delete this list.")
+
+        list_title = instance.name
+        instance.delete()
+
+        # Return a proper success response
+        return Response(
+            {"message": f"List '{list_title}' deleted successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Override destroy to return a proper response instead of 204 No Content.
+        """
+        instance = self.get_object()
+        if self.request.user != instance.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied("Only the list owner or admin can delete this list.")
+
+        list_title = instance.name
+        instance.delete()
+
+        return Response(
+            {"message": f"List '{list_title}' deleted successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["get"], url_path="me")
     def my_lists(self, request):
         """
         Returns lists owned by or shared with the current user.
         GET /api/lists/me/
         """
         user = request.user
-        queryset = MyList.objects.filter(
-            user=user) | MyList.objects.filter(shared_with=user)
+        queryset = MyList.objects.filter(user=user) | MyList.objects.filter(
+            shared_with=user
+        )
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -358,7 +431,9 @@ class MyListViewSet(viewsets.ModelViewSet):
         """
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post', 'delete'], url_path='slug/(?P<slug>[^/]+)/share')
+    @action(
+        detail=False, methods=["post", "delete"], url_path="slug/(?P<slug>[^/]+)/share"
+    )
     def share_by_slug(self, request, slug=None):
         """
         Share or unshare a list by slug with another user.
@@ -382,29 +457,29 @@ class MyListViewSet(viewsets.ModelViewSet):
         try:
             list_obj = MyList.objects.get(slug=slug)
         except MyList.DoesNotExist:
-            return Response({'error': 'List not found'}, status=404)
+            return Response({"error": "List not found"}, status=404)
 
         if request.user != list_obj.user:
-            return Response({'error': 'You do not own this list.'}, status=403)
+            return Response({"error": "You do not own this list."}, status=403)
 
-        username = request.data.get('username')
+        username = request.data.get("username")
         if not username:
-            return Response({'error': 'Missing "username"'}, status=400)
+            return Response({"error": 'Missing "username"'}, status=400)
 
         try:
             target_user = User.objects.get(username=username)
         except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=404)
+            return Response({"error": "User not found"}, status=404)
 
-        if request.method == 'POST':
+        if request.method == "POST":
             list_obj.shared_with.add(target_user)
-            return Response({'message': f"List '{slug}' shared with {username}."})
+            return Response({"message": f"List '{slug}' shared with {username}."})
 
-        elif request.method == 'DELETE':
+        elif request.method == "DELETE":
             list_obj.shared_with.remove(target_user)
-            return Response({'message': f"List '{slug}' unshared from {username}."})
+            return Response({"message": f"List '{slug}' unshared from {username}."})
 
-        return Response({'error': 'Method not allowed.'}, status=405)
+        return Response({"error": "Method not allowed."}, status=405)
 
     delete_movies_request_body = openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -412,17 +487,17 @@ class MyListViewSet(viewsets.ModelViewSet):
             "movie_ids": openapi.Schema(
                 type=openapi.TYPE_ARRAY,
                 items=openapi.Schema(type=openapi.TYPE_INTEGER),
-                description="List of movie IDs to remove"
+                description="List of movie IDs to remove",
             )
         },
         required=["movie_ids"],
-        example={"movie_ids": [5, 7, 9]}
+        example={"movie_ids": [5, 7, 9]},
     )
 
-    @swagger_auto_schema(
-        method='delete',
-        request_body=delete_movies_request_body)
-    @action(detail=False, methods=['get', 'post', 'delete'], url_path='slug/(?P<slug>[^/]+)')
+    @swagger_auto_schema(method="delete", request_body=delete_movies_request_body)
+    @action(
+        detail=False, methods=["get", "post", "delete"], url_path="slug/(?P<slug>[^/]+)"
+    )
     def handle_list_by_slug(self, request, slug=None):
         """
         Handler for interacting with a list by its slug
@@ -444,47 +519,59 @@ class MyListViewSet(viewsets.ModelViewSet):
             - 400 Bad Request if input is missing or invalid
         """
         try:
-            list_obj = MyList.objects.get(slug=slug)
+            # First try to find a list owned by the current user
+            list_obj = MyList.objects.get(slug=slug, user=request.user)
         except MyList.DoesNotExist:
-            return Response({'error': 'List not found'}, status=404)
+            # If not found, try to find a list shared with the current user
+            try:
+                list_obj = MyList.objects.get(slug=slug, shared_with=request.user)
+            except MyList.DoesNotExist:
+                return Response(
+                    {"error": f"List not found, current user {request.user}"},
+                    status=404,
+                )
 
-        if request.user != list_obj.user and request.user not in list_obj.shared_with.all():
-            return Response({'error': 'Permission denied.'}, status=403)
+        if (
+            request.user != list_obj.user
+            and request.user not in list_obj.shared_with.all()
+        ):
+            return Response({"error": "Permission denied."}, status=403)
 
-        if request.method == 'GET':
+        if request.method == "GET":
             serializer = self.get_serializer(list_obj)
             return Response(serializer.data)
 
         # Get movie IDs from request (accept single int or list)
-        movie_ids = request.data.get(
-            "movie_id") or request.data.get("movie_ids")
+        movie_ids = request.data.get("movie_id") or request.data.get("movie_ids")
 
         if not movie_ids:
-            return Response({'error': 'Missing movie_id(s)'}, status=400)
+            return Response({"error": "Missing movie_id(s)"}, status=400)
 
         if isinstance(movie_ids, int):
             movie_ids = [movie_ids]  # Wrap single ID in a list
 
         if not isinstance(movie_ids, list):
-            return Response({'error': 'movie_ids must be a list of integers.'}, status=400)
+            return Response(
+                {"error": "movie_ids must be a list of integers."}, status=400
+            )
 
         # Fetch valid movie objects
         movies = list(Movie.objects.filter(id__in=movie_ids))
         found_ids = {m.id for m in movies}
         missing_ids = set(movie_ids) - found_ids
 
-        if request.method == 'POST':
+        if request.method == "POST":
             list_obj.movies.add(*movies)
             msg = f"Added {len(movies)} movie(s) to list '{slug}'."
             if missing_ids:
                 msg += f" Skipped missing IDs: {list(missing_ids)}"
-            return Response({'message': msg})
+            return Response({"message": msg})
 
-        elif request.method == 'DELETE':
+        elif request.method == "DELETE":
             list_obj.movies.remove(*movies)
             msg = f"Removed {len(movies)} movie(s) from list '{slug}'."
             if missing_ids:
                 msg += f" Skipped missing IDs: {list(missing_ids)}"
-            return Response({'message': msg})
+            return Response({"message": msg})
 
-        return Response({'error': 'Method not allowed.'}, status=405)
+        return Response({"error": "Method not allowed."}, status=405)
