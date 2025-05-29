@@ -3,6 +3,7 @@ import api from "../api";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
+import DeleteListButton from "../components/DeleteListButton";
 
 interface MovieList {
   id: number;
@@ -24,6 +25,7 @@ function List() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [listID, setListID] = useState<number>(-1);
 
   useEffect(() => {
     const listSlug = new URLSearchParams(window.location.search).get("slug");
@@ -34,6 +36,7 @@ function List() {
           `/lists/slug/${listSlug}`
         );
 
+        setListID(responseList.data.id);
         setListName(responseList.data.name);
 
         const listMovies: Movie[] = [];
@@ -90,6 +93,8 @@ function List() {
           <p className="my-20 font-bold text-2xl">No movies on this list</p>
         )}
       </div>
+
+      <DeleteListButton listID={listID} />
     </>
   );
 }
