@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { FaTrash } from "react-icons/fa";
 
@@ -6,11 +7,14 @@ interface Props {
 }
 
 function DeleteListButton({ listID }: Props) {
+  const navigate = useNavigate();
+
   const handleClick = () => {
     api
       .delete(`/lists/${listID}/`)
       .then(() => {
         alert("List deleted");
+        navigate("/");
       })
       .catch((err) => {
         alert(err);
