@@ -48,6 +48,7 @@ function MovieModal(props: Props) {
 
         const responseLists = await api.get<MovieList[]>("/lists/me");
         setLists(responseLists.data);
+        setChosenList(responseLists.data[0]);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
