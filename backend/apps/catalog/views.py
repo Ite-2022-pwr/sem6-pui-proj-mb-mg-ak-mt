@@ -364,6 +364,33 @@ class MyListViewSet(viewsets.ModelViewSet):
             return MyList.objects.all()
         return MyList.objects.none()
 
+    def get_object(self):
+        """
+        Override get_object to allow users to access lists they own or are shared with.
+        This enables GET/PATCH/DELETE operations on /api/lists/<id>/
+        """
+        # Get the object ID from the URL
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs[lookup_url_kwarg]
+
+        try:
+            obj = MyList.objects.get(pk=lookup_value)
+        except MyList.DoesNotExist:
+            from django.http import Http404
+
+            raise Http404("List not found")
+
+        user = self.request.user
+
+        # Allow access if user is admin, owner, or shared user
+        if user.is_staff or obj.user == user or user in obj.shared_with.all():
+            return obj
+
+        # If user doesn't have permission, raise 404 instead of 403 for security
+        from django.http import Http404
+
+        raise Http404("List not found")
+
     def perform_update(self, serializer):
         """
         Only allow list owners and admins to update lists.
@@ -385,12 +412,12 @@ class MyListViewSet(viewsets.ModelViewSet):
 
             raise PermissionDenied("Only the list owner or admin can delete this list.")
 
-        list_title = instance.name
+        list_name = instance.name
         instance.delete()
 
         # Return a proper success response
         return Response(
-            {"message": f"List '{list_title}' deleted successfully."},
+            {"message": f"List '{list_name}' deleted successfully."},
             status=status.HTTP_200_OK,
         )
 
@@ -404,11 +431,11 @@ class MyListViewSet(viewsets.ModelViewSet):
 
             raise PermissionDenied("Only the list owner or admin can delete this list.")
 
-        list_title = instance.name
+        list_name = instance.name
         instance.delete()
 
         return Response(
-            {"message": f"List '{list_title}' deleted successfully."},
+            {"message": f"List '{list_name}' deleted successfully."},
             status=status.HTTP_200_OK,
         )
 
