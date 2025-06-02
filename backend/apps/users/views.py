@@ -11,8 +11,9 @@ from rest_framework import viewsets
 from django.contrib.auth.models import User
 from .serializers import UserSerializer
 
+
 # TODO: review paths/urls here
-class UserViewSet(viewsets.ModelViewSet): 
+class UserViewSet(viewsets.ModelViewSet):
     """
     Only admin user is able to view all users.
     Regular user can view only their own info.
@@ -25,11 +26,17 @@ class UserViewSet(viewsets.ModelViewSet):
     -  Returns info about the current logged-in user (for anyone logged in)
 
     """
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=["get"], url_path="me", permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="me",
+        permission_classes=[IsAuthenticated],
+    )
     def me(self, request):
         """
         Return the authenticated user's own info.

@@ -53,7 +53,7 @@ function MovieModal(props: Props) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
             `ERROR ${err.response.status}: ${
-              err.response.data?.message || "Unknown error"
+              err.response.data?.error || "Unknown error"
             }`
           );
         } else {
@@ -89,7 +89,7 @@ function MovieModal(props: Props) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
             `ERROR ${err.response.status}: ${
-              err.response.data?.message || "Unknown error"
+              err.response.data?.error || "Unknown error"
             }`
           );
         } else {
@@ -114,7 +114,7 @@ function MovieModal(props: Props) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
             `ERROR ${err.response.status}: ${
-              err.response.data?.message || "Unknown error"
+              err.response.data?.error || "Unknown error"
             }`
           );
         } else {
@@ -184,7 +184,7 @@ function MovieModal(props: Props) {
         </form>
 
         {slug && (
-          <div className="bg-mylightgrey p-5 rounded-xl flex flex-col gap-6 max-w-2xl">
+          <div className="bg-mylightgrey p-10 rounded-xl flex flex-col gap-6 max-w-2xl">
             <h1 className="border-b w-full text-4xl"></h1>
             <button
               className="bg-red-500 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"

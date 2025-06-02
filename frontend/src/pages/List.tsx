@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 import DeleteListButton from "../components/DeleteListButton";
+import ShareListButton from "../components/ShareListButton";
 
 interface MovieList {
   id: number;
   name: string;
   slug: string;
   movies: number[];
+  shared_with: number[];
 }
 
 interface Movie {
@@ -26,6 +28,13 @@ function List() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [listID, setListID] = useState<number>(-1);
+  const [list, setList] = useState<MovieList>({
+    id: -1,
+    name: "",
+    slug: "",
+    movies: [],
+    shared_with: [],
+  });
 
   useEffect(() => {
     const listSlug = new URLSearchParams(window.location.search).get("slug");
@@ -38,6 +47,7 @@ function List() {
 
         setListID(responseList.data.id);
         setListName(responseList.data.name);
+        setList(responseList.data);
 
         const listMovies: Movie[] = [];
 
@@ -51,7 +61,7 @@ function List() {
         if (axios.isAxiosError(err) && err.response) {
           setError(
             `ERROR ${err.response.status}: ${
-              err.response.data?.message || "Unknown error"
+              err.response.data?.error || "Unknown error"
             }`
           );
         } else {
@@ -94,6 +104,7 @@ function List() {
         )}
       </div>
 
+      <ShareListButton list={list} />
       <DeleteListButton listID={listID} />
     </>
   );

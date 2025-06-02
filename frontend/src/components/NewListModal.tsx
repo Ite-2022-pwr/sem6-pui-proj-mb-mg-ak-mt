@@ -24,12 +24,12 @@ function NewListModal(props: Props) {
       .catch((err) => {
         if (axios.isAxiosError(err) && err.response) {
           setError(
-            `Błąd ${err.response.status}: ${
-              err.response.data?.message || "Nieznany błąd"
+            `ERROR ${err.response.status}: ${
+              err.response.data?.error || "Unknown error"
             }`
           );
         } else {
-          setError("Nie udało się utworzyć listy");
+          setError("Cannot create list");
         }
       });
   }

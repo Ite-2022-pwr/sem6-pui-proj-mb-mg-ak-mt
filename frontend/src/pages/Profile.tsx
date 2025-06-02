@@ -4,7 +4,6 @@ import api from "../api";
 import Navbar from "../components/Navbar";
 
 interface User {
-  id: number;
   username: string;
   email: string;
 }
@@ -12,7 +11,6 @@ interface User {
 function Profile() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [userID, setUserID] = useState<number>(-1);
 
   const navigate = useNavigate();
 
@@ -23,7 +21,6 @@ function Profile() {
 
         setUsername(response.data.username);
         setEmail(response.data.email);
-        setUserID(response.data.id);
       } catch (error) {
         alert(error);
       }
@@ -51,10 +48,6 @@ function Profile() {
           <li>
             E-mail address:
             <span className="mx-5 font-mono font-normal">{email}</span>
-          </li>
-          <li>
-            User ID:
-            <span className="mx-5 font-mono font-normal">{userID}</span>
           </li>
         </ul>
         <button

@@ -25,7 +25,7 @@ function Home() {
         if (axios.isAxiosError(err) && err.response) {
           setError(
             `ERROR ${err.response.status}: ${
-              err.response.data?.message || "Unknown error"
+              err.response.data?.error || "Unknown error"
             }`
           );
         } else {
