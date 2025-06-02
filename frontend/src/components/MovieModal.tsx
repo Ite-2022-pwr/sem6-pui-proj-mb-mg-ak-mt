@@ -136,11 +136,11 @@ function MovieModal(props: Props) {
       className="fixed top-0 left-0 w-full h-full bg-black/75 flex items-center justify-center z-50 text-mydarkblue"
       onClick={closeModal}
     >
-      <div className="bg-mylightgrey rounded-xl flex flex-col gap-6 w-[80%] max-w-2xl h-[80%] overflow-y-auto">
+      <div className="bg-mylightgrey dark:bg-mydarkgrey dark:text-mylightgrey rounded-xl flex flex-col gap-6 w-[80%] max-w-2xl h-[80%] overflow-y-auto">
         <form
           id="select-list-form"
           onSubmit={handleSubmit}
-          className="bg-mylightgrey p-10 rounded-xl flex flex-col gap-6 max-w-2xl"
+          className="p-10 rounded-xl flex flex-col gap-6 max-w-2xl"
         >
           <h1 className="border-b w-full text-4xl">Description</h1>
           <p>{props.movie.description}</p>
@@ -160,7 +160,7 @@ function MovieModal(props: Props) {
               name="lists"
               form="select-list-form"
               onChange={(e) => handleOnChange(e.target.value)}
-              className="mx-5 bg-myyellow-1 rounded-2xl p-3 font-bold cursor-pointer text-center"
+              className="mx-5 bg-myyellow-1 rounded-2xl p-3 font-bold cursor-pointer text-center text-mydarkblue"
             >
               {lists.map((list) => {
                 return (
@@ -177,17 +177,17 @@ function MovieModal(props: Props) {
           </label>
           <button
             type="submit"
-            className="bg-mymint w-50 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+            className="bg-mymint w-50 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer hover:bg-green-400"
           >
             Add to list
           </button>
         </form>
 
         {slug && (
-          <div className="bg-mylightgrey p-10 rounded-xl flex flex-col gap-6 max-w-2xl">
+          <div className="p-10 rounded-xl flex flex-col gap-6 max-w-2xl">
             <h1 className="border-b w-full text-4xl"></h1>
             <button
-              className="bg-red-500 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+              className="bg-red-400 text-black text-xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer hover:bg-red-500"
               onClick={removeFromList}
             >
               Remove from this list

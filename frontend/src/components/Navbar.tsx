@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { FaUser } from "react-icons/fa";
+import ThemeSwitch from "./ThemeSwitch";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -27,12 +28,7 @@ function Navbar() {
         </li>
 
         <li>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" />
-            <div className="w-14 h-8 bg-myyellow-1 rounded-full peer-checked:bg-myyellow-1 relative transition-all duration-300 peer-checked:[&>div]:translate-x-6">
-              <div className="absolute left-1 top-1 bg-mydarkgrey w-6 h-6 rounded-full transition-all duration-300 "></div>
-            </div>
-          </label>
+          <ThemeSwitch />
         </li>
 
         <li>

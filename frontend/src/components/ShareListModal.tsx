@@ -113,7 +113,7 @@ function ShareListModal(props: Props) {
       className="fixed top-0 left-0 w-full h-full bg-black/75 flex items-center justify-center z-50"
       onClick={closeModal}
     >
-      <div className="bg-mylightgrey rounded-xl flex flex-col gap-6 w-[80%] max-w-2xl h-[80%] p-10 overflow-y-auto">
+      <div className="bg-mylightgrey dark:bg-mydarkgrey dark:text-mylightgrey rounded-xl flex flex-col gap-6 w-[80%] max-w-2xl h-[80%] p-10 overflow-y-auto">
         <h1 className="border-b w-full text-4xl">Shared with</h1>
         {loading && <p className="text-mydarkblue">Loading users...</p>}
         <ul className="list-disc mx-10 text-3xl">
@@ -123,7 +123,7 @@ function ShareListModal(props: Props) {
               <li className="my-5" key={username}>
                 <span className="mr-5">{username}</span>
                 <button
-                  className="bg-red-400 text-black text-xl px-5 py-4 rounded-full font-limelight hover:cursor-pointer"
+                  className="bg-red-400 text-black text-xl px-5 py-4 rounded-full font-limelight hover:cursor-pointer hover:bg-red-500"
                   onClick={() => {
                     stopSharing(username);
                   }}
@@ -136,7 +136,7 @@ function ShareListModal(props: Props) {
         </ul>
         <form
           onSubmit={handleSubmit}
-          className="bg-mylightgrey rounded-xl flex flex-col gap-6 max-w-2xl"
+          className="rounded-xl flex flex-col gap-6 max-w-2xl"
         >
           <h1 className="border-b w-full text-4xl">Share list</h1>
 
@@ -148,7 +148,7 @@ function ShareListModal(props: Props) {
           />
           <button
             type="submit"
-            className="bg-mymint text-black text-3xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+            className="bg-mymint text-black text-3xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer hover:bg-green-400"
           >
             Share
           </button>

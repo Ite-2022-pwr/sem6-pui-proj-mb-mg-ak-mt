@@ -49,7 +49,7 @@ function NewListModal(props: Props) {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-mylightgrey p-10 rounded-xl flex flex-col items-center gap-6 w-[80%] max-w-2xl"
+        className="bg-mylightgrey dark:bg-mydarkgrey p-10 rounded-xl flex flex-col items-center gap-6 w-[80%] max-w-2xl"
       >
         <input
           className="bg-myyellow-1 text-mydarkblue font-bold text-2xl px-6 py-4 rounded-lg w-full"
@@ -59,7 +59,7 @@ function NewListModal(props: Props) {
         />
         <button
           type="submit"
-          className="bg-mymint text-black text-3xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer"
+          className="bg-mymint text-black text-3xl px-10 py-4 rounded-full font-limelight hover:cursor-pointer hover:bg-green-400"
         >
           Create
         </button>

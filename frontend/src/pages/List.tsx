@@ -78,9 +78,9 @@ function List() {
   return (
     <>
       <Navbar />
-      <div className="bg-mywhite min-h-screen px-8 py-4">
+      <div className="bg-mylightgrey dark:bg-mydarkgrey min-h-screen px-8 py-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-mydarkblue text-3xl font-limelight border-b w-fit">
+          <h2 className="text-mydarkblue dark:text-myyellow-1 text-3xl font-limelight border-b w-fit">
             My lists &gt; {listName}
           </h2>
           <input
@@ -90,17 +90,23 @@ function List() {
           />
         </div>
 
-        {loading && <p className="text-mydarkblue">Loading movies...</p>}
+        {loading && (
+          <p className="text-mydarkblue dark:text-myyellow-1">
+            Loading movies...
+          </p>
+        )}
         {error && <p className="text-red-500">{error}</p>}
 
-        <div className="flex flex-wrap gap-6 text-mydarkblue font-serif text-2xl text-wrap">
+        <div className="flex flex-wrap gap-6 text-mydarkblue dark:text-mylightgrey font-serif text-2xl text-wrap">
           {movies.map((movie) => {
             return <MovieCard key={movie.id} movie={movie} />;
           })}
         </div>
 
         {!movies.length && (
-          <p className="my-20 font-bold text-2xl">No movies on this list</p>
+          <p className="my-20 font-bold text-2xl dark:text-mylightgrey">
+            No movies on this list
+          </p>
         )}
       </div>
 
