@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 function ThemeSwitch() {
-  const [isChecked, setIsChecked] = useState<boolean>(false);
+  let isDark = localStorage.getItem("dark-mode") === "true" ? true : false;
+
+  const [isChecked, setIsChecked] = useState<boolean>(isDark);
 
   useEffect(() => {
     if (isChecked) {
@@ -9,6 +11,8 @@ function ThemeSwitch() {
     } else {
       document.documentElement.classList.remove("dark");
     }
+
+    localStorage.setItem("dark-mode", `${isChecked}`);
   }, [isChecked]);
 
   const onChange = () => {
