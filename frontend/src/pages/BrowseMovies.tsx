@@ -44,7 +44,7 @@ function BrowseMovies() {
         if (axios.isAxiosError(err) && err.response) {
           setError({
             status: err.response.status,
-            message: err.response.data?.browse || "Unknown error",
+            message: err.response.data?.error || "Unknown error",
           });
         } else {
           setError({ message: "Cannot get movies or genres" });
@@ -97,11 +97,13 @@ function BrowseMovies() {
             <button
               key={genre.id}
               onClick={() => toggleGenre(genre.id)}
-              className={`px-3 py-1 rounded-full border cursor-pointer select-none ${
-                selectedGenres.includes(genre.id)
-                  ? "bg-myyellow-1 text-mydarkblue"
-                  : "bg-transparent text-myyellow-1 border-myyellow-1"
-              }`}
+              className={`px-3 py-1 rounded-full border cursor-pointer select-none
+        ${
+          selectedGenres.includes(genre.id)
+            ? "bg-myyellow-1 text-mydarkblue dark:bg-yellow-400 dark:text-gray-900 border-mydarkblue dark:border-myyellow-1"
+            : "bg-transparent text-mydarkblue border-mydarkblue dark:text-myyellow-1 dark:border-myyellow-1"
+        }
+      `}
             >
               {genre.name}
             </button>
