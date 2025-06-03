@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 import DeleteListButton from "../components/DeleteListButton";
 import ShareListButton from "../components/ShareListButton";
+import SearchBar from "../components/SearchBar";
 
 interface MovieList {
   id: number;
@@ -35,6 +36,7 @@ function List() {
     movies: [],
     shared_with: [],
   });
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
     const listSlug = new URLSearchParams(window.location.search).get("slug");
@@ -75,19 +77,19 @@ function List() {
     fetchMovies();
   }, []);
 
+  const filteredMovies = movies.filter((movie) =>
+    movie.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <>
       <Navbar />
       <div className="bg-mylightgrey dark:bg-mydarkgrey min-h-screen px-8 py-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
           <h2 className="text-mydarkblue dark:text-myyellow-1 text-3xl font-limelight border-b w-fit">
             My lists &gt; {listName}
           </h2>
-          <input
-            type="text"
-            placeholder="Search"
-            className="rounded-full px-4 py-1 bg-myyellow-1 text-mydarkblue placeholder-mydarkblue focus:outline-none w-48"
-          />
+          <SearchBar value={searchTerm} onChange={setSearchTerm} />
         </div>
 
         {loading && (
@@ -98,14 +100,14 @@ function List() {
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="flex flex-wrap gap-6 text-mydarkblue dark:text-mylightgrey font-serif text-2xl text-wrap">
-          {movies.map((movie) => {
+          {filteredMovies.map((movie) => {
             return <MovieCard key={movie.id} movie={movie} />;
           })}
         </div>
 
-        {!movies.length && (
+        {!filteredMovies.length && !loading && (
           <p className="my-20 font-bold text-2xl dark:text-mylightgrey">
-            No movies on this list
+            No movies found.
           </p>
         )}
       </div>
