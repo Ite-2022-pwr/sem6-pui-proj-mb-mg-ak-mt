@@ -13,17 +13,31 @@ interface Movie {
   genres: number[];
 }
 
+interface Genre {
+  id: number;
+  name: string;
+}
+
 function BrowseMovies() {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get<Movie[]>("/movies");
-        setMovies(response.data);
+        const [moviesRes, genresRes] = await Promise.all([
+          api.get<Movie[]>("/movies"),
+
+          api.get<Genre[]>("/genres"),
+        ]);
+
+        setMovies(moviesRes.data);
+
+        setGenres(genresRes.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
           setError(
@@ -32,29 +46,65 @@ function BrowseMovies() {
             }`
           );
         } else {
-          setError("Cannot get movies");
+          setError("Cannot get movies or genres");
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovies();
+    fetchData();
   }, []);
 
-  const filteredMovies = movies.filter((movie) =>
-    movie.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const toggleGenre = (genreId: number) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genreId)
+        ? prev.filter((id) => id !== genreId)
+        : [...prev, genreId]
+    );
+  };
+
+  const filteredMovies = movies.filter((movie) => {
+    const search = searchTerm.toLowerCase();
+
+    const matchesText =
+      movie.title.toLowerCase().includes(search) ||
+      movie.description.toLowerCase().includes(search);
+
+    const matchesGenres =
+      selectedGenres.length === 0 ||
+      movie.genres.some((genreId) => selectedGenres.includes(genreId));
+
+    return matchesText && matchesGenres;
+  });
 
   return (
     <>
       <Navbar />
+
       <div className="bg-mylightgrey dark:bg-mydarkgrey min-h-screen px-4 sm:px-8 py-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
           <h2 className="text-mydarkblue dark:text-myyellow-1 text-3xl font-limelight border-b w-fit">
             Browse movies
           </h2>
+
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
+        </div>
+
+        <div className="mb-4 flex flex-wrap gap-2">
+          {genres.map((genre) => (
+            <button
+              key={genre.id}
+              onClick={() => toggleGenre(genre.id)}
+              className={`px-3 py-1 rounded-full border cursor-pointer select-none ${
+                selectedGenres.includes(genre.id)
+                  ? "bg-myyellow-1 text-mydarkblue"
+                  : "bg-transparent text-myyellow-1 border-myyellow-1"
+              }`}
+            >
+              {genre.name}
+            </button>
+          ))}
         </div>
 
         {loading && (
@@ -62,6 +112,7 @@ function BrowseMovies() {
             Loading movies...
           </p>
         )}
+
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="flex flex-wrap justify-center md:justify-start gap-6 text-mydarkblue dark:text-mylightgrey font-serif text-2xl">
