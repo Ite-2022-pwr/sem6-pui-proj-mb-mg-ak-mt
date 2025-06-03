@@ -1,47 +1,99 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 import ThemeSwitch from "./ThemeSwitch";
 
 function Navbar() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <div className="bg-mydarkblue text-myyellow-1 flex flex-row items-center justify-between top-0 sticky">
-      <img src={logo} className="flex" />
-      <ul className="flex flex-row font-limelight text-2xl gap-7 mx-5 items-center">
-        <li
-          className="w-24 leading-tight block text-center break-words hover:underline hover:cursor-pointer"
-          onClick={() => {
-            navigate("/browse");
-          }}
-        >
-          Browse movies
-        </li>
-        <li
-          className="block leading-tight hover:underline hover:cursor-pointer"
+    <div className="bg-mydarkblue text-myyellow-1 sticky top-0 z-50">
+      <div className="flex items-center justify-between px-4 py-3 md:px-8">
+        <img
+          src={logo}
+          className="h-auto w-auto max-h-20 cursor-pointer"
           onClick={() => {
             navigate("/");
+            closeMenu();
           }}
+        />
+
+        <button
+          className="md:hidden text-2xl"
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
         >
-          My lists
-        </li>
+          {menuOpen ? <FaTimes /> : <FaBars />}
+        </button>
 
-        <li>
-          <ThemeSwitch />
-        </li>
+        <ul className="hidden md:flex flex-row items-center gap-7 font-limelight text-xl">
+          <li
+            className="hover:underline cursor-pointer"
+            onClick={() => navigate("/browse")}
+          >
+            Browse movies
+          </li>
+          <li
+            className="hover:underline cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            My lists
+          </li>
+          <li>
+            <ThemeSwitch />
+          </li>
+          <li>
+            <button
+              className="bg-myyellow-1 rounded-full w-10 h-10 flex items-center justify-center"
+              onClick={() => navigate("/profile")}
+            >
+              <FaUser className="text-mydarkblue text-lg" />
+            </button>
+          </li>
+        </ul>
+      </div>
 
-        <li>
-          <button
-            className="bg-myyellow-1 rounded-full w-12 h-12 flex items-center justify-center hover:cursor-pointer"
+      {menuOpen && (
+        <ul className="flex flex-col gap-4 px-4 pb-4 md:hidden font-limelight text-lg bg-mydarkblue border-t border-myyellow-1">
+          <li
+            className="hover:underline cursor-pointer"
             onClick={() => {
-              navigate("/profile");
+              navigate("/browse");
+              closeMenu();
             }}
           >
-            <FaUser className="text-mydarkblue text-xl " />
-          </button>
-        </li>
-      </ul>
+            Browse movies
+          </li>
+          <li
+            className="hover:underline cursor-pointer"
+            onClick={() => {
+              navigate("/");
+              closeMenu();
+            }}
+          >
+            My lists
+          </li>
+          <li>
+            <ThemeSwitch />
+          </li>
+          <li>
+            <button
+              className="bg-myyellow-1 rounded-full w-10 h-10 flex items-center justify-center"
+              onClick={() => {
+                navigate("/profile");
+                closeMenu();
+              }}
+            >
+              <FaUser className="text-mydarkblue text-lg" />
+            </button>
+          </li>
+        </ul>
+      )}
     </div>
   );
 }
