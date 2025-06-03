@@ -1,10 +1,11 @@
 import axios from "axios";
-import api from "../api";
 import { useEffect, useState } from "react";
+import api from "../api";
 import Navbar from "../components/Navbar";
 import ListCard from "../components/ListCard";
 import NewListButton from "../components/NewListButton";
 import SearchBar from "../components/SearchBar";
+import ErrorAlert from "../components/ErrorAlert";
 
 interface MovieList {
   id: number;
@@ -15,7 +16,10 @@ interface MovieList {
 function Home() {
   const [lists, setLists] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{
+    status?: number;
+    message: string;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
@@ -25,13 +29,12 @@ function Home() {
         setLists(response.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          setError(
-            `ERROR ${err.response.status}: ${
-              err.response.data?.error || "Unknown error"
-            }`
-          );
+          setError({
+            status: err.response.status,
+            message: err.response.data?.error || "Unknown error",
+          });
         } else {
-          setError("Cannot load lists");
+          setError({ message: "Cannot load lists" });
         }
       } finally {
         setLoading(false);
@@ -61,18 +64,19 @@ function Home() {
             Loading lists...
           </p>
         )}
-        {error && <p className="text-red-500">{error}</p>}
+
+        {error && <ErrorAlert status={error.status} message={error.message} />}
 
         <div className="flex flex-wrap gap-6 text-mymint font-limelight">
-          {filteredLists.length > 0 ? (
-            filteredLists.map((list) => (
-              <ListCard key={list.id} name={list.name} slug={list.slug} />
-            ))
-          ) : (
-            <p className="text-mydarkblue dark:text-myyellow-1">
-              No lists found.
-            </p>
-          )}
+          {filteredLists.length > 0
+            ? filteredLists.map((list) => (
+                <ListCard key={list.id} name={list.name} slug={list.slug} />
+              ))
+            : !loading && (
+                <p className="text-mydarkblue dark:text-myyellow-1">
+                  No lists found.
+                </p>
+              )}
         </div>
 
         <NewListButton />

@@ -4,6 +4,7 @@ import api from "../api";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 import SearchBar from "../components/SearchBar";
+import ErrorAlert from "../components/ErrorAlert";
 
 interface Movie {
   id: number;
@@ -22,7 +23,10 @@ function BrowseMovies() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{
+    status?: number;
+    message: string;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
@@ -31,22 +35,19 @@ function BrowseMovies() {
       try {
         const [moviesRes, genresRes] = await Promise.all([
           api.get<Movie[]>("/movies"),
-
           api.get<Genre[]>("/genres"),
         ]);
 
         setMovies(moviesRes.data);
-
         setGenres(genresRes.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          setError(
-            `ERROR ${err.response.status}: ${
-              err.response.data?.browse || "Unknown error"
-            }`
-          );
+          setError({
+            status: err.response.status,
+            message: err.response.data?.browse || "Unknown error",
+          });
         } else {
-          setError("Cannot get movies or genres");
+          setError({ message: "Cannot get movies or genres" });
         }
       } finally {
         setLoading(false);
@@ -113,18 +114,18 @@ function BrowseMovies() {
           </p>
         )}
 
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <ErrorAlert status={error.status} message={error.message} />}
 
         <div className="flex flex-wrap justify-center md:justify-start gap-6 text-mydarkblue dark:text-mylightgrey font-serif text-2xl">
-          {filteredMovies.length > 0 ? (
-            filteredMovies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))
-          ) : (
-            <p className="text-center w-full text-mydarkblue dark:text-myyellow-1">
-              No movies found.
-            </p>
-          )}
+          {filteredMovies.length > 0
+            ? filteredMovies.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))
+            : !loading && (
+                <p className="text-center w-full text-mydarkblue dark:text-myyellow-1">
+                  No movies found.
+                </p>
+              )}
         </div>
       </div>
     </>

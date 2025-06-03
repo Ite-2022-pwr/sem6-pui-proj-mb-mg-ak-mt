@@ -1,11 +1,12 @@
 import axios from "axios";
-import api from "../api";
 import { useEffect, useState } from "react";
+import api from "../api";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 import DeleteListButton from "../components/DeleteListButton";
 import ShareListButton from "../components/ShareListButton";
 import SearchBar from "../components/SearchBar";
+import ErrorAlert from "../components/ErrorAlert";
 
 interface MovieList {
   id: number;
@@ -24,11 +25,6 @@ interface Movie {
 }
 
 function List() {
-  const [listName, setListName] = useState<string | null>("");
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [listID, setListID] = useState<number>(-1);
   const [list, setList] = useState<MovieList>({
     id: -1,
     name: "",
@@ -36,38 +32,43 @@ function List() {
     movies: [],
     shared_with: [],
   });
+  const [listName, setListName] = useState<string | null>("");
+  const [listID, setListID] = useState<number>(-1);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<{
+    status?: number;
+    message: string;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
-    const listSlug = new URLSearchParams(window.location.search).get("slug");
-
     const fetchMovies = async () => {
+      const listSlug = new URLSearchParams(window.location.search).get("slug");
+
       try {
         const responseList = await api.get<MovieList>(
           `/lists/slug/${listSlug}`
         );
+        const { id, name, movies: movieIds } = responseList.data;
 
-        setListID(responseList.data.id);
-        setListName(responseList.data.name);
         setList(responseList.data);
+        setListID(id);
+        setListName(name);
 
-        const listMovies: Movie[] = [];
+        const movieResponses = await Promise.all(
+          movieIds.map((id) => api.get<Movie>(`/movies/${id}`))
+        );
 
-        for (const id of responseList.data.movies) {
-          const res = await api.get<Movie>(`/movies/${id}`);
-          listMovies.push(res.data);
-        }
-
-        setMovies(listMovies);
+        setMovies(movieResponses.map((res) => res.data));
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {
-          setError(
-            `ERROR ${err.response.status}: ${
-              err.response.data?.error || "Unknown error"
-            }`
-          );
+          setError({
+            status: err.response.status,
+            message: err.response.data?.error || "Unknown error",
+          });
         } else {
-          setError("Cannot get movies");
+          setError({ message: "Cannot get movies" });
         }
       } finally {
         setLoading(false);
@@ -84,6 +85,7 @@ function List() {
   return (
     <>
       <Navbar />
+
       <div className="bg-mylightgrey dark:bg-mydarkgrey min-h-screen px-8 py-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
           <h2 className="text-mydarkblue dark:text-myyellow-1 text-3xl font-limelight border-b w-fit">
@@ -97,12 +99,13 @@ function List() {
             Loading movies...
           </p>
         )}
-        {error && <p className="text-red-500">{error}</p>}
+
+        {error && <ErrorAlert status={error.status} message={error.message} />}
 
         <div className="flex flex-wrap gap-6 text-mydarkblue dark:text-mylightgrey font-serif text-2xl text-wrap">
-          {filteredMovies.map((movie) => {
-            return <MovieCard key={movie.id} movie={movie} />;
-          })}
+          {filteredMovies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
         </div>
 
         {!filteredMovies.length && !loading && (
