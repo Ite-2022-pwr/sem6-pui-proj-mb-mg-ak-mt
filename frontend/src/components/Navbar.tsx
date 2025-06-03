@@ -31,7 +31,7 @@ function Navbar() {
           {menuOpen ? <FaTimes /> : <FaBars />}
         </button>
 
-        <ul className="hidden md:flex flex-row items-center gap-7 font-limelight text-xl">
+        <ul className="hidden md:flex flex-row items-center gap-7 font-limelight text-2xl">
           <li
             className="hover:underline cursor-pointer"
             onClick={() => navigate("/browse")}
@@ -49,7 +49,7 @@ function Navbar() {
           </li>
           <li>
             <button
-              className="bg-myyellow-1 rounded-full w-10 h-10 flex items-center justify-center"
+              className="bg-myyellow-1 rounded-full w-10 h-10 flex items-center justify-center hover:cursor-pointer hover:bg-myyellow-2"
               onClick={() => navigate("/profile")}
             >
               <FaUser className="text-mydarkblue text-lg" />
@@ -59,7 +59,7 @@ function Navbar() {
       </div>
 
       {menuOpen && (
-        <ul className="flex flex-col gap-4 px-4 pb-4 md:hidden font-limelight text-lg bg-mydarkblue border-t border-myyellow-1">
+        <ul className="flex flex-col gap-4 px-4 pb-4 md:hidden font-limelight text-2xl bg-mydarkblue border-t border-myyellow-1 pt-5">
           <li
             className="hover:underline cursor-pointer"
             onClick={() => {
@@ -83,7 +83,7 @@ function Navbar() {
           </li>
           <li>
             <button
-              className="bg-myyellow-1 rounded-full w-10 h-10 flex items-center justify-center"
+              className="bg-myyellow-1 rounded-full w-10 h-10 flex items-center justify-center hover:cursor-pointer hover:bg-myyellow-2"
               onClick={() => {
                 navigate("/profile");
                 closeMenu();
