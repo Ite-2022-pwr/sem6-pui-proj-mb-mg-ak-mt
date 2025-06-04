@@ -3,10 +3,13 @@ Projekt na Projektowanie usług internetowych
 
 # Setup
 ## Docker-compose
-Currently in [docker-compose.yaml](docker-compose.yaml) we create 2 containers:
+In [docker-compose.yaml](docker-compose.yaml) we create 3 containers:
 ```
 - moviepicker-backend 
     Django backend exposed on localhost:80000 (currently without https)
+
+- moviepicker-frontend
+    Frontend exposed 
 
 - moviepicker-postgres  
     Postgres database with persistent volume (local folder is choosed by docker-compose)
@@ -33,4 +36,14 @@ docker-compose exec moviepicker-backend python manage.py createsuperuser
 
 
 ## Import example data
-In [README.md](backend/README.md) there is a section explaining simple [helper.py](backend/scripts/helper.py) functions to get some data from the TMDB api
+Backend has a cronjob to periodically run the import for 10 TMDB pages. To run it manually run this command:
+
+`docker-compose exec moviepicker-backend python manage.py import_tmdb_data --pages=10 --import-genres`
+
+However you need to have TMDB Settings configured in the django admin panel.
+
+## Deletion / shutting down
+To shutdown the containers: `docker-compose down`  
+
+To shutdown the containers and remove everything, volumes, networks:
+`docker-compose down --volumes`
