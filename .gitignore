@@ -1,5 +1,8 @@
 # ENV / TMDB API Key
 backend/scripts/.env
+backend/apps/users/migrations/*
+backend/apps/catalog/migrations/*
+backend/apps/authentication/migrations/*
 
 # Django #
 *.log

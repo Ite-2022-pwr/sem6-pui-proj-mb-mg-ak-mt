@@ -1,0 +1,1 @@
+* 2 * * *  /usr/local/bin/python /app/manage.py import_tmdb_data --pages=10 --import-genres >> /var/log/cron.log 2>&1

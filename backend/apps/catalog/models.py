@@ -10,7 +10,8 @@ class Genre(models.Model):
     def __str__(self):
         return self.name
 
-#TODO: Maybe optimize the field types
+
+# TODO: Maybe optimize the field types
 class Movie(models.Model):
     title = models.CharField(max_length=254)
     description = models.TextField()
@@ -19,36 +20,30 @@ class Movie(models.Model):
     vote_average = models.FloatField()
     vote_count = models.IntegerField()
     adult = models.BooleanField()
-    genres = models.ManyToManyField(Genre, related_name='movies') # Related name to be able to access via genre.movies.all()
-
+    genres = models.ManyToManyField(
+        Genre, related_name="movies"
+    )  # Related name to be able to access via genre.movies.all()
 
     class Meta:
-        db_table = 'catalog_movie'
+        db_table = "catalog_movie"
 
     def __str__(self):
         return self.title
 
+
 class MyList(models.Model):
     DEFAULT_LISTS = ["watched", "favorites", "to_watch"]
 
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='owned_lists'
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owned_lists")
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=50)
-    movies = models.ManyToManyField('Movie', related_name='my_lists')
+    movies = models.ManyToManyField("Movie", related_name="my_lists")
 
-    shared_with = models.ManyToManyField(
-        User,
-        related_name='shared_lists',
-        blank=True
-    )
+    shared_with = models.ManyToManyField(User, related_name="shared_lists", blank=True)
 
     class Meta:
-        unique_together = ('user', 'slug')
-        db_table = 'mylist'
+        unique_together = ("user", "slug")
+        db_table = "mylist"
 
     def __str__(self):
         return f"{self.user.username} - {self.name}"
@@ -66,15 +61,27 @@ class MyList(models.Model):
         super().save(*args, **kwargs)
 
 
+class TMDBSettings(models.Model):
+    api_key = models.CharField(max_length=255, help_text="TMDB API Key")
+    bearer_token = models.TextField(help_text="TMDB Bearer Token")
+    base_url = models.URLField(
+        default="https://api.themoviedb.org/3/", help_text="TMDB API Base URL"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(
+        default=True, help_text="Whether this configuration is active"
+    )
 
+    class Meta:
+        db_table = "tmdb_settings"
+        verbose_name = "TMDB Settings"
+        verbose_name_plural = "TMDB Settings"
 
-# We are not using this one, cause we are using ManyToManyField in movie.genres and it creates a join table
-# class GenreToMovie(models.Model):
-#     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-#     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    def __str__(self):
+        return f"TMDB Settings (Active: {self.is_active})"
 
-#     class Meta:
-#         db_table = 'catalog_genre_to_movies'
-#         unique_together = ('genre', 'movie')
-
-
+    @classmethod
+    def get_active_settings(cls):
+        """Get the active TMDB settings"""
+        return cls.objects.filter(is_active=True).first()
