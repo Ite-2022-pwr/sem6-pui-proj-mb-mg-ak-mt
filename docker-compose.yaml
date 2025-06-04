@@ -11,6 +11,24 @@ services:
       - "8000:8000"
     depends_on:
       - moviepicker-postgres
+    networks:
+      - moviepicker-network
+
+  moviepicker-frontend:
+    container_name: moviepicker-frontend
+    build: ./frontend/
+    volumes:
+      - ./frontend:/app:z
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api
+    depends_on:
+      - moviepicker-backend
+    networks:
+      - moviepicker-network
+
   moviepicker-postgres:
     image: postgres:latest
     container_name: moviepicker-postgres
@@ -23,5 +41,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - moviepicker-network
+
 volumes:
   postgres_data:
+
+networks:
+  moviepicker-network:
+    driver: bridge
